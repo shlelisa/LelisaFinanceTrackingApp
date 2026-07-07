@@ -1,0 +1,176 @@
+"use client";
+
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CATEGORIES } from "@/lib/types/transaction";
+import {
+  transactionSchema,
+  type TransactionFormValues,
+} from "@/lib/validation/transaction";
+
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (values: TransactionFormValues) => Promise<void>;
+  defaultValues?: Partial<TransactionFormValues>;
+  mode: "create" | "edit";
+};
+
+export default function TransactionForm({
+  open,
+  onOpenChange,
+  onSubmit,
+  defaultValues,
+  mode,
+}: Props) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionSchema) as unknown as Resolver<TransactionFormValues>,
+    defaultValues: {
+      type: "expense",
+      amount: undefined,
+      category: "",
+      description: "",
+      date: new Date().toISOString().slice(0, 10),
+      ...defaultValues,
+    },
+  });
+
+  const watchType = watch("type");
+
+  const handleFormSubmit = async (values: TransactionFormValues) => {
+    await onSubmit(values);
+    reset();
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === "create" ? "Add Transaction" : "Edit Transaction"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="type">Type</Label>
+              <Select
+                value={watchType}
+                onValueChange={(v) => setValue("type", (v ?? "expense") as "income" | "expense")}
+              >
+                <SelectTrigger id="type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">Expense</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.type && (
+                <p className="text-xs text-destructive">{errors.type.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                {...register("amount")}
+              />
+              {errors.amount && (
+                <p className="text-xs text-destructive">
+                  {errors.amount.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              onValueChange={(v) => setValue("category", v ?? "")}
+              defaultValue={defaultValues?.category}
+            >
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category && (
+              <p className="text-xs text-destructive">
+                {errors.category.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" placeholder="e.g. Coffee" {...register("description")} />
+            {errors.description && (
+              <p className="text-xs text-destructive">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="date">Date</Label>
+            <Input id="date" type="date" {...register("date")} />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Saving..."
+                : mode === "create"
+                  ? "Create"
+                  : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
