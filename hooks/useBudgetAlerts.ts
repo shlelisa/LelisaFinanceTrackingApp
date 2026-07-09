@@ -4,7 +4,7 @@ import { showBudgetAlert } from "@/lib/notifications";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export const useBudgetAlerts = (
-  t: (key: string, values?: Record<string, unknown>) => string
+  t: (key: string, values?: Record<string, string | number | Date>) => string
 ) => {
   const { data: budgets = [] } = useBudgets();
   const alertedRef = useRef<Set<string>>(new Set());

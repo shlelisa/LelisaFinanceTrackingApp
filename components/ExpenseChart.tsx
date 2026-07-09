@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const COLORS = [
   "#025aa2",
@@ -25,12 +26,13 @@ type Props = {
 };
 
 export default function ExpenseChart({ data }: Props) {
+  const { t } = useTranslation();
   const chartData = data && data.length > 0 ? data : [];
 
   if (chartData.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        No expense data yet
+        {t("charts.no_expense_data")}
       </div>
     );
   }

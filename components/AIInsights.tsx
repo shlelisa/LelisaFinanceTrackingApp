@@ -12,10 +12,6 @@ const severityConfig = {
   info: { icon: Info, class: "border-blue-500/30 bg-blue-50 dark:bg-blue-950/20" },
 };
 
-const typeLabels: Record<string, string> = {
-  spending: "Spending",
-};
-
 export default function AIInsights() {
   const { t } = useTranslation();
   const { data, isLoading } = useInsights();

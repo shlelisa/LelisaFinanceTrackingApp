@@ -36,6 +36,7 @@ export default function TranslationProvider({ children }: { children: ReactNode 
   return (
     <NextIntlClientProvider
       locale={locale}
+      timeZone="Africa/Addis_Ababa"
       messages={messages}
       getMessageFallback={({ key }) => getNested(en, key) ?? key}
     >

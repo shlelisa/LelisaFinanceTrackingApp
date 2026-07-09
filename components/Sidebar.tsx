@@ -5,7 +5,20 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getNotifications } from "@/lib/notifications";
-import { LayoutDashboard, CreditCard, BarChart3, Target, User, LogOut, Menu, PiggyBank, Trophy, RefreshCw, Bell, CalendarDays } from "lucide-react";
+import {
+  LayoutDashboard,
+  CreditCard,
+  BarChart3,
+  Target,
+  User,
+  LogOut,
+  Menu,
+  PiggyBank,
+  Trophy,
+  RefreshCw,
+  Bell,
+  CalendarDays,
+} from "lucide-react";
 
 const navItems = [
   { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -68,9 +81,12 @@ export default function Sidebar() {
           <PiggyBank className="size-6 text-primary" />
           <span
             className="cursor-pointer text-lg font-bold text-primary"
-            onClick={() => { router.push("/dashboard"); setOpen(false); }}
+            onClick={() => {
+              router.push("/dashboard");
+              setOpen(false);
+            }}
           >
-            FinanceApp
+            {t("app.name")}
           </span>
         </div>
 
@@ -81,7 +97,10 @@ export default function Sidebar() {
             return (
               <button
                 key={link.href}
-                onClick={() => { router.push(link.href); setOpen(false); }}
+                onClick={() => {
+                  router.push(link.href);
+                  setOpen(false);
+                }}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                   active
                     ? "bg-primary text-primary-foreground font-medium shadow-sm"

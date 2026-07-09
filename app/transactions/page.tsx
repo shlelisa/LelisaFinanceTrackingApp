@@ -303,6 +303,7 @@ export default function TransactionsPage() {
                 onClick={clearSelection}
               >
                 {t("common.clear")}
+              </Button>
             </div>
           )}
         />

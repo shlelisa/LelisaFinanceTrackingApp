@@ -55,7 +55,7 @@ export const showBudgetAlert = (
   category: string,
   spent: number,
   limit: number,
-  t: (key: string, values?: Record<string, unknown>) => string
+  t: (key: string, values?: Record<string, string | number | Date>) => string
 ) => {
   const percentage = (spent / limit) * 100;
 
@@ -92,7 +92,7 @@ export const showBudgetAlert = (
 
 export const showGoalAchieved = (
   name: string,
-  t: (key: string, values?: Record<string, unknown>) => string
+  t: (key: string, values?: Record<string, string | number | Date>) => string
 ) => {
   toast.success(t("alerts.goal_achieved_title"), {
     description: t("alerts.goal_achieved_desc", { name }),

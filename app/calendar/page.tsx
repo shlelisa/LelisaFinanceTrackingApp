@@ -89,7 +89,7 @@ export default function CalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-px rounded-lg border bg-muted">
-              {weekdays.map((d) => (
+              {weekdays.map((d: string) => (
                 <div key={d} className="bg-background px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                   {d}
                 </div>
