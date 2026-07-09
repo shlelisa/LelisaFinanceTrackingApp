@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { budgetFormSchema, BudgetFormValues } from "@/lib/validation/budget";
-import { CATEGORIES } from "../lib/types/transaction";
+import { CATEGORIES } from "@/lib/constants";
 
 interface BudgetFormProps {
   open: boolean;
@@ -46,8 +46,8 @@ const BudgetForm = ({
   existingCategories,
 }: BudgetFormProps) => {
   const form = useForm<BudgetFormValues>({
-    resolver: zodResolver(budgetFormSchema) as never,
-    defaultValues: defaultValues,
+    resolver: zodResolver(budgetFormSchema) as any,
+    defaultValues: { category: "", limitAmount: 0, ...defaultValues },
   });
 
   const availableCategories = CATEGORIES.filter(
@@ -56,9 +56,13 @@ const BudgetForm = ({
   );
 
   const handleFormSubmit = form.handleSubmit(async (data) => {
-    onSubmit(data);
-    form.reset();
-    onOpenChange(false);
+    try {
+      await onSubmit(data);
+      form.reset();
+      onOpenChange(false);
+    } catch {
+      // Error handled by parent
+    }
   });
 
   return (
@@ -79,7 +83,7 @@ const BudgetForm = ({
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || ""}
                     disabled={mode === "edit"}
                   >
                     <FormControl>

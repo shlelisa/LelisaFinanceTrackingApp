@@ -89,10 +89,9 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-sans);
-  /* --font-sans: "EB Garamond", serif; */
+  --font-sans: var(--font-geist-sans);
 
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

@@ -19,7 +19,7 @@ export function validateRegisterForm(
 
   if (!data.phone.trim()) {
     errors.phone = "Phone number is required";
-  } else if (!/^\+?[\d\s\-()]{7,15}$/.test(data.phone)) {
+  } else if (!/^\+?\d{7,15}$/.test(data.phone.replace(/[\s\-()]/g, ""))) {
     errors.phone = "Invalid phone number";
   }
 

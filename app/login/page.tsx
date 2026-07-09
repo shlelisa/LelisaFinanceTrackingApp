@@ -93,6 +93,12 @@ const LoginPage = () => {
               <p className="text-sm text-success">Login successful!</p>
             )}
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <a href="/register" className="font-medium text-primary hover:underline">
+              Register
+            </a>
+          </p>
         </CardContent>
       </Card>
     </div>

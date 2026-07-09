@@ -1,0 +1,115 @@
+{
+  "app": {
+    "name": "የፋይናንስ መከታተያ"
+  },
+  "nav": {
+    "dashboard": "ዳሽቦርድ",
+    "transactions": "ግብይቶች",
+    "budgets": "በጀቶች",
+    "goals": "ግቦች",
+    "recurring": "ተደጋጋሚ",
+    "reports": "ሪፖርቶች",
+    "calendar": "ካሌንዳር",
+    "notifications": "ማሳወቂያዎች",
+    "profile": "ፕሮፋይል",
+    "logout": "ውጣ",
+    "settings": "ማስተካከያ"
+  },
+  "common": {
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "edit": "አስተካክል",
+    "delete": "ሰርዝ",
+    "create": "ፍጠር",
+    "update": "አዘምን",
+    "saving": "በማስቀመጥ ላይ...",
+    "loading": "በመጫን ላይ...",
+    "search": "ፈልግ",
+    "filter": "አጣራ",
+    "export": "ላክ",
+    "close": "ዝጋ",
+    "confirm_delete": "እርግጠኛ ነህ?",
+    "balance": "ሂሳብ",
+    "income": "ገቢ",
+    "expenses": "ወጪ",
+    "amount": "መጠን",
+    "type": "አይነት",
+    "category": "ምድብ",
+    "description": "መግለጫ",
+    "date": "ቀን",
+    "currency": "ምንዛሬ",
+    "language": "ቋንቋ",
+    "theme": "ገጽታ",
+    "dark_mode": "ጨለማ ሁነታ",
+    "light_mode": "ብርሃን ሁነታ"
+  },
+  "transaction": {
+    "add": "ግብይት ጨምር",
+    "edit": "ግብይት አስተካክል",
+    "delete": "ግብይት ሰርዝ"
+  },
+  "goal": {
+    "add": "ግብ ጨምር",
+    "edit": "ግብ አስተካክል",
+    "target": "ዒላማ",
+    "current": "አሁን ያለ",
+    "deadline": "የመጨረሻ ቀን",
+    "progress": "እድገት"
+  },
+  "budget": {
+    "add": "በጀት ጨምር",
+    "edit": "በጀት አስተካክል",
+    "spent": "የወጣ",
+    "remaining": "የቀረ",
+    "period": "ወቅት"
+  },
+  "recurring": {
+    "add": "ተደጋጋሚ ጨምር",
+    "edit": "ተደጋጋሚ አስተካክል",
+    "next_date": "ቀጣይ ቀን",
+    "frequency": "ድግግሞሽ",
+    "active": "ንቁ",
+    "inactive": "ሥራ ላይ ያልሆነ"
+  },
+  "profile": {
+    "edit": "ፕሮፋይል አስተካክል",
+    "preferences": "ምርጫዎች",
+    "exchange_rates": "የምንዛሬ ተመኖች",
+    "account_info": "የመለያ መረጃ",
+    "full_name": "ሙሉ ስም",
+    "email": "ኢሜይል",
+    "phone": "ስልክ",
+    "change_password": "የይለፍ ቃል ቀይር",
+    "delete_account": "መለያ ሰርዝ"
+  },
+  "report": {
+    "summary": "ማጠቃለያ",
+    "charts": "ገበታዎች",
+    "date_range": "የቀን ክልል",
+    "this_week": "በዚህ ሳምንት",
+    "this_month": "በዚህ ወር",
+    "last_30_days": "ያለፉ 30 ቀናት",
+    "this_year": "በዚህ አመት",
+    "custom": "በራስዎ ይምረጡ"
+  },
+  "notifications": {
+    "title": "ማሳወቂያዎች",
+    "mark_read": "ሁሉንም እንደተነበቡ አድርግ",
+    "clear": "ሁሉንም አጽዳ",
+    "empty": "ምንም ማሳወቂያ የለም"
+  },
+  "export": {
+    "csv": "CSV",
+    "pdf": "PDF",
+    "excel": "Excel"
+  },
+  "auth": {
+    "login": "ግባ",
+    "register": "ተመዝገብ",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "full_name": "ሙሉ ስም",
+    "no_account": "መለያ የለህም?",
+    "has_account": "አካውንት አለህ?"
+  }
+}

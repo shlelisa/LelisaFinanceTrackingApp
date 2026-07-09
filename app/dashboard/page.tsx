@@ -10,6 +10,8 @@ import {
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ExpenseChart from "@/components/ExpenseChart";
+import AIInsights from "@/components/AIInsights";
+import Money from "@/components/Money";
 import { useDashboardSummary } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
 import { useRouter } from "next/navigation";
@@ -69,13 +71,15 @@ export default function DashboardPage() {
                   <p className="h-8 w-24 animate-pulse rounded bg-muted" />
                 ) : (
                   <p className={`text-2xl font-bold tracking-tight ${card.color}`}>
-                    {card.value.toLocaleString()} ETB
+                    <Money amount={card.value} />
                   </p>
                 )}
               </CardContent>
             </Card>
           ))}
         </div>
+
+        <AIInsights />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -124,7 +128,7 @@ export default function DashboardPage() {
                       }`}
                     >
                       {tx.type === "income" ? "+" : "-"}
-                      {tx.amount.toLocaleString()} ETB
+                      <Money amount={tx.amount} />
                     </span>
                   </div>
                 ))

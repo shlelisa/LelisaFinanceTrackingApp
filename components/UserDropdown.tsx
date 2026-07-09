@@ -3,6 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { User, Settings, LogOut } from "lucide-react";
 
 export default function UserDropdown() {
   const { user, logout } = useAuth();
@@ -20,8 +21,9 @@ export default function UserDropdown() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const u = user as Record<string, string> | null;
-  const initial = (u?.fullName ?? "U").charAt(0).toUpperCase();
+  const fullName = user?.fullName ?? "User";
+  const email = user?.email ?? "";
+  const initial = fullName.charAt(0).toUpperCase();
 
   return (
     <div ref={ref} className="relative">
@@ -35,27 +37,21 @@ export default function UserDropdown() {
       {open && (
         <div className="absolute right-0 top-12 z-50 w-48 overflow-hidden rounded-xl border bg-card py-1 shadow-lg">
           <div className="border-b px-4 py-3">
-            <p className="text-sm font-medium">{u?.fullName ?? "User"}</p>
-            <p className="text-xs text-muted-foreground">{u?.email ?? ""}</p>
+            <p className="text-sm font-medium">{fullName}</p>
+            <p className="text-xs text-muted-foreground">{email}</p>
           </div>
           <button
             onClick={() => { router.push("/profile"); setOpen(false); }}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            👤 Profile
-          </button>
-          <button
-            onClick={() => { router.push("/profile"); setOpen(false); }}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            ⚙️ Settings
+            <User className="size-4" /> Profile
           </button>
           <div className="border-t" />
           <button
             onClick={() => { logout(); router.push("/login"); setOpen(false); }}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            🚪 Logout
+            <LogOut className="size-4" /> Logout
           </button>
         </div>
       )}

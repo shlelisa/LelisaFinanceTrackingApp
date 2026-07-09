@@ -4,6 +4,8 @@ import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import Providers from "./providers";
 import { AuthProvider } from "@/hooks/useAuth";
+import { Toaster } from "sonner";
+import BudgetAlertWatcher from "@/components/BudgetAlertWatcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +44,8 @@ export default function RootLayout({
               </main>
             </div>
           </AuthProvider>
+          <Toaster richColors position="top-right" />
+          <BudgetAlertWatcher />
         </Providers>
       </body>
     </html>

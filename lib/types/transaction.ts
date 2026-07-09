@@ -3,6 +3,8 @@ export type Transaction = {
   userId: string;
   type: "income" | "expense";
   amount: number;
+  currency: string;
+  originalAmount: number;
   category: string;
   description: string;
   date: string;
@@ -13,6 +15,7 @@ export type Transaction = {
 export type CreateTransactionInput = {
   type: "income" | "expense";
   amount: number;
+  currency?: string;
   category: string;
   description: string;
   date?: string;
@@ -43,12 +46,4 @@ export type MonthlyReport = {
   categoryBreakdown: { _id: string; total: number }[];
 };
 
-export const CATEGORIES = [
-  "Income",
-  "Food",
-  "Travel",
-  "HouseRent",
-  "MobileData",
-  "Entertainment",
-  "Other",
-] as const;
+export { CATEGORIES } from "@/lib/constants";

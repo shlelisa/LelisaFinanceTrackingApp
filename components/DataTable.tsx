@@ -29,8 +29,17 @@ import {
   type ColumnFiltersState,
   type SortingState,
   type VisibilityState,
+  type Row,
 } from "@tanstack/react-table";
 import { useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
+
+const escapeCsv = (val: string): string => {
+  if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+    return `"${val.replace(/"/g, '""')}"`;
+  }
+  return val;
+};
 
 type DataTableProps<T> = {
   data: T[];
@@ -54,6 +63,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [goToPage, setGoToPage] = useState("1");
 
   const table = useReactTable({
     data,
@@ -82,10 +92,10 @@ export default function DataTable<T extends Record<string, unknown>>({
     if (!exportHeaders || !exportRow) return;
     const visibleRows = table.getRowModel().rows.map((r) => r.original);
     const csv = [
-      exportHeaders.join(","),
-      ...visibleRows.map((r) => exportRow(r).join(",")),
+      exportHeaders.map(escapeCsv).join(","),
+      ...visibleRows.map((r) => exportRow(r).map(escapeCsv).join(",")),
     ].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -95,6 +105,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   }, [exportHeaders, exportRow, table]);
 
   const selectedCount = Object.keys(rowSelection).length;
+  const selectedRows = table.getRowModel().rows.filter((r) => r.getIsSelected());
 
   return (
     <div className="space-y-4">
@@ -157,7 +168,7 @@ export default function DataTable<T extends Record<string, unknown>>({
         <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2 text-sm">
           <span className="font-medium">{selectedCount} selected</span>
           {renderBulkActions(
-            Object.keys(rowSelection).map((i) => data[parseInt(i)]),
+            selectedRows.map((r) => r.original),
             () => setRowSelection({})
           )}
         </div>
@@ -202,7 +213,10 @@ export default function DataTable<T extends Record<string, unknown>>({
                     colSpan={columns.length}
                     className="px-4 py-12 text-center text-muted-foreground"
                   >
-                    Loading...
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
+                      Loading...
+                    </div>
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length === 0 ? (
@@ -250,18 +264,13 @@ export default function DataTable<T extends Record<string, unknown>>({
               <Input
                 type="number"
                 min={1}
-                max={table.getPageCount()}
-                defaultValue={table.getState().pagination.pageIndex + 1}
+                max={Math.max(1, table.getPageCount())}
+                value={goToPage}
+                onChange={(e) => setGoToPage(e.target.value)}
                 className="h-8 w-16 text-xs"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    const page = Math.max(
-                      1,
-                      Math.min(
-                        Number((e.target as HTMLInputElement).value),
-                        table.getPageCount(),
-                      ),
-                    );
+                    const page = Math.max(1, Math.min(Number(goToPage), table.getPageCount()));
                     table.setPageIndex(page - 1);
                   }
                 }}

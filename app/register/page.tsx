@@ -57,7 +57,7 @@ const RegisterPage = () => {
     mutation.mutate(form, {
       onSuccess: (data) => {
         login(data.token, data.user);
-        router.push("/");
+        router.push("/dashboard");
       },
     });
   };
@@ -104,6 +104,12 @@ const RegisterPage = () => {
               <p className="text-sm text-success">Registration successful!</p>
             )}
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <a href="/login" className="font-medium text-primary hover:underline">
+              Login
+            </a>
+          </p>
         </CardContent>
       </Card>
     </div>

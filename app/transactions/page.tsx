@@ -15,6 +15,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DataTable from "@/components/DataTable";
 import TransactionForm from "@/components/TransactionForm";
+import Money from "@/components/Money";
 import {
   useTransactions,
   useCreateTransaction,
@@ -22,7 +23,7 @@ import {
   useDeleteTransaction,
 } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
-import { CATEGORIES } from "@/lib/types/transaction";
+import { CATEGORIES } from "@/lib/constants";
 import type { TransactionFormValues } from "@/lib/validation/transaction";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
@@ -33,14 +34,12 @@ export default function TransactionsPage() {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [formOpen, setFormOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
-  const [globalSearch, setGlobalSearch] = useState("");
 
   const { data: transactions = [], isLoading } = useTransactions({
     type: typeFilter !== "all" ? typeFilter : undefined,
     category: categoryFilter !== "all" ? categoryFilter : undefined,
     startDate: dateRange.start || undefined,
     endDate: dateRange.end || undefined,
-    search: globalSearch || undefined,
   });
 
   const createMutation = useCreateTransaction();
@@ -103,16 +102,25 @@ export default function TransactionsPage() {
         accessorKey: "amount",
         header: "Amount",
         enableSorting: true,
-        cell: ({ row }) => (
-          <span
-            className={`tabular-nums ${
-              row.original.type === "income" ? "text-success" : "text-error"
-            }`}
-          >
-            {row.original.type === "income" ? "+" : "-"}
-            {row.original.amount.toLocaleString()}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const tx = row.original;
+          const showOrig = tx.currency && tx.currency !== "ETB" && tx.originalAmount != null;
+          return (
+            <span
+              className={`tabular-nums ${
+                tx.type === "income" ? "text-success" : "text-error"
+              }`}
+            >
+              {tx.type === "income" ? "+" : "-"}
+              <Money amount={tx.amount} />
+              {showOrig && (
+                <span className="ml-1 text-xs text-muted-foreground">
+                  ({tx.originalAmount} {tx.currency})
+                </span>
+              )}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "type",
@@ -260,7 +268,7 @@ export default function TransactionsPage() {
           exportHeaders={["Date", "Description", "Category", "Amount", "Type"]}
           exportRow={(r) => [
             new Date(r.date).toLocaleDateString(),
-            `"${r.description}"`,
+            r.description,
             r.category,
             r.amount.toString(),
             r.type,
@@ -273,9 +281,7 @@ export default function TransactionsPage() {
                 className="h-8 text-xs"
                 onClick={async () => {
                   if (confirm(`Delete ${selectedRows.length} selected transactions?`)) {
-                    for (const tx of selectedRows) {
-                      await deleteTx(tx._id);
-                    }
+                    await Promise.all(selectedRows.map((tx) => deleteTx(tx._id)));
                     clearSelection();
                   }
                 }}
@@ -306,7 +312,8 @@ export default function TransactionsPage() {
           editTx
             ? {
                 type: editTx.type,
-                amount: editTx.amount,
+                amount: editTx.originalAmount ?? editTx.amount,
+                currency: editTx.currency ?? "ETB",
                 category: editTx.category,
                 description: editTx.description,
                 date: new Date(editTx.date).toISOString().slice(0, 10),

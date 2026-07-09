@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CATEGORIES } from "@/lib/types/transaction";
+import { CATEGORIES, CURRENCIES } from "@/lib/constants";
 import {
   transactionSchema,
   type TransactionFormValues,
@@ -47,10 +47,11 @@ export default function TransactionForm({
     reset,
     formState: { errors, isSubmitting },
   } = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema) as unknown as Resolver<TransactionFormValues>,
+    resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
       type: "expense",
       amount: undefined,
+      currency: "ETB",
       category: "",
       description: "",
       date: new Date().toISOString().slice(0, 10),
@@ -59,11 +60,16 @@ export default function TransactionForm({
   });
 
   const watchType = watch("type");
+  const watchCategory = watch("category");
 
   const handleFormSubmit = async (values: TransactionFormValues) => {
-    await onSubmit(values);
-    reset();
-    onOpenChange(false);
+    try {
+      await onSubmit(values);
+      reset();
+      onOpenChange(false);
+    } catch {
+      // Error handled by parent
+    }
   };
 
   return (
@@ -76,7 +82,7 @@ export default function TransactionForm({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="type">Type</Label>
               <Select
@@ -112,13 +118,30 @@ export default function TransactionForm({
                 </p>
               )}
             </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="currency">Currency</Label>
+              <Select
+                value={watch("currency") || "ETB"}
+                onValueChange={(v) => setValue("currency", v ?? "ETB")}
+              >
+                <SelectTrigger id="currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="category">Category</Label>
             <Select
+              value={watchCategory}
               onValueChange={(v) => setValue("category", v ?? "")}
-              defaultValue={defaultValues?.category}
             >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select category" />

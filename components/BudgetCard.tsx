@@ -4,6 +4,7 @@ import type { Budget } from "@/lib/types/budget";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Money from "@/components/Money";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -13,26 +14,30 @@ interface BudgetCardProps {
 
 const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
   const spentPercentage =
-    budget.limitAmount > 0 ? (budget.spent / budget.limitAmount) * 100 : 0;
+    budget.limitAmount > 0
+      ? Math.min((budget.spent / budget.limitAmount) * 100, 999)
+      : 0;
 
   const getProgressColor = () => {
-    if (spentPercentage > 100) return "bg-red-500";
+    if (spentPercentage >= 100) return "bg-red-500";
     if (spentPercentage > 80) return "bg-yellow-500";
     return "bg-green-500";
   };
+
+  const isExceeded = budget.remaining < 0;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium">{budget.category}</CardTitle>
-        {spentPercentage > 100 && <Badge variant="destructive">Exceeded</Badge>}
+        {isExceeded && <Badge variant="destructive">Exceeded</Badge>}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Spent</span>
           <span>
-            {budget.spent.toLocaleString()} /{" "}
-            {budget.limitAmount.toLocaleString()}
+            <Money amount={budget.spent} /> /{" "}
+            <Money amount={budget.limitAmount} />
           </span>
         </div>
         <Progress
@@ -41,8 +46,10 @@ const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
           indicatorClassName={getProgressColor()}
         />
         <div className="flex justify-between items-center">
-          <p className="text-sm font-medium">
-            Remaining: {budget.remaining.toLocaleString()}
+          <p className={`text-sm font-medium ${isExceeded ? "text-destructive" : ""}`}>
+            {isExceeded
+              ? <>Overspent by <Money amount={Math.abs(budget.remaining)} /></>
+              : <>Remaining: <Money amount={budget.remaining} /></>}
           </p>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => onEdit(budget)}>

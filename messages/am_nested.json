@@ -1,0 +1,115 @@
+﻿{
+    "notifications":  {
+                          "title":  "ማሳወቂያዎች",
+                          "mark_read":  "ሁሉንም እንደተነበቡ አድርግ",
+                          "clear":  "ሁሉንም አጽዳ",
+                          "empty":  "ምንም ማሳወቂያ የለም"
+                      },
+    "auth":  {
+                 "no_account":  "መለያ የለህም?",
+                 "register":  "ተመዝገብ",
+                 "password":  "የይለፍ ቃል",
+                 "has_account":  "አካውንት አለህ?",
+                 "full_name":  "ሙሉ ስም",
+                 "login":  "ግባ",
+                 "email":  "ኢሜይል"
+             },
+    "report":  {
+                   "this_year":  "በዚህ አመት",
+                   "charts":  "ገበታዎች",
+                   "this_month":  "በዚህ ወር",
+                   "date_range":  "የቀን ክልል",
+                   "summary":  "ማጠቃለያ",
+                   "custom":  "በራስዎ ይምረጡ",
+                   "this_week":  "በዚህ ሳምንት",
+                   "last_30_days":  "ያለፉ 30 ቀናት"
+               },
+    "profile":  {
+                    "delete_account":  "መለያ ሰርዝ",
+                    "preferences":  "ምርጫዎች",
+                    "change_password":  "የይለፍ ቃል ቀይር",
+                    "full_name":  "ሙሉ ስም",
+                    "account_info":  "የመለያ መረጃ",
+                    "edit":  "ፕሮፋይል አስተካክል",
+                    "exchange_rates":  "የምንዛሬ ተመኖች",
+                    "phone":  "ስልክ",
+                    "email":  "ኢሜይል"
+                },
+    "goal":  {
+                 "target":  "ዒላማ",
+                 "progress":  "እድገት",
+                 "deadline":  "የመጨረሻ ቀን",
+                 "edit":  "ግብ አስተካክል",
+                 "add":  "ግብ ጨምር",
+                 "current":  "አሁን ያለ"
+             },
+    "nav":  {
+                "budgets":  "በጀቶች",
+                "reports":  "ሪፖርቶች",
+                "calendar":  "ካሌንዳር",
+                "transactions":  "ግብይቶች",
+                "goals":  "ግቦች",
+                "profile":  "ፕሮፋይል",
+                "notifications":  "ማሳወቂያዎች",
+                "dashboard":  "ዳሽቦርድ",
+                "logout":  "ውጣ",
+                "recurring":  "ተደጋጋሚ",
+                "settings":  "ማስተካከያ"
+            },
+    "export":  {
+                   "pdf":  "PDF",
+                   "csv":  "CSV",
+                   "excel":  "Excel"
+               },
+    "recurring":  {
+                      "frequency":  "ድግግሞሽ",
+                      "active":  "ንቁ",
+                      "inactive":  "ሥራ ላይ ያልሆነ",
+                      "next_date":  "ቀጣይ ቀን",
+                      "edit":  "ተደጋጋሚ አስተካክል",
+                      "add":  "ተደጋጋሚ ጨምር"
+                  },
+    "app":  {
+                "name":  "የፋይናንስ መከታተያ"
+            },
+    "budget":  {
+                   "period":  "ወቅት",
+                   "spent":  "የወጣ",
+                   "add":  "በጀት ጨምር",
+                   "edit":  "በጀት አስተካክል",
+                   "remaining":  "የቀረ"
+               },
+    "common":  {
+                   "theme":  "ገጽታ",
+                   "description":  "መግለጫ",
+                   "type":  "አይነት",
+                   "update":  "አዘምን",
+                   "amount":  "መጠን",
+                   "loading":  "በመጫን ላይ...",
+                   "saving":  "በማስቀመጥ ላይ...",
+                   "income":  "ገቢ",
+                   "currency":  "ምንዛሬ",
+                   "cancel":  "ሰርዝ",
+                   "expenses":  "ወጪ",
+                   "save":  "አስቀምጥ",
+                   "delete":  "ሰርዝ",
+                   "create":  "ፍጠር",
+                   "edit":  "አስተካክል",
+                   "filter":  "አጣራ",
+                   "close":  "ዝጋ",
+                   "category":  "ምድብ",
+                   "balance":  "ሂሳብ",
+                   "search":  "ፈልግ",
+                   "export":  "ላክ",
+                   "date":  "ቀን",
+                   "dark_mode":  "ጨለማ ሁነታ",
+                   "language":  "ቋንቋ",
+                   "confirm_delete":  "እርግጠኛ ነህ?",
+                   "light_mode":  "ብርሃን ሁነታ"
+               },
+    "transaction":  {
+                        "delete":  "ግብይት ሰርዝ",
+                        "add":  "ግብይት ጨምር",
+                        "edit":  "ግብይት አስተካክል"
+                    }
+}

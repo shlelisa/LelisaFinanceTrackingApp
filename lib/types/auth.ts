@@ -1,3 +1,5 @@
+import type { User } from "./api";
+
 export type RegisterInput = {
   fullName: string;
   email: string;
@@ -13,3 +15,5 @@ export type LoginInput = {
   email: string;
   password: string;
 };
+
+export type { User };

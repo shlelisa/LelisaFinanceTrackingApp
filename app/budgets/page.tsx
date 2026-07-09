@@ -74,6 +74,7 @@ export default function BudgetsPage() {
       </div>
 
       <BudgetForm
+        key={editBudget?._id ?? "create"}
         open={formOpen}
         onOpenChange={(open) => {
           if (!open) setEditBudget(null);

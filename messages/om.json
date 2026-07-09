@@ -1,0 +1,115 @@
+{
+  "app": {
+    "name": "Qormaata Maallaqaa"
+  },
+  "nav": {
+    "dashboard": "Gabaajee",
+    "transactions": "Jijjiirama",
+    "budgets": "Bajata",
+    "goals": "Kaayyoo",
+    "recurring": "Irra Deddeebi'aa",
+    "reports": "Gabaasa",
+    "calendar": "Kaleendara",
+    "notifications": "Beeksisa",
+    "profile": "Piroofayilii",
+    "logout": "Ba'i",
+    "settings": "Qindeeffama"
+  },
+  "common": {
+    "save": "Olkaa'i",
+    "cancel": "Haqi",
+    "edit": "Gulaali",
+    "delete": "Balleessi",
+    "create": "Uumi",
+    "update": "Odeessifadhu",
+    "saving": "Olkaa'aa jira...",
+    "loading": "Fe'aa jira...",
+    "search": "Barbaadi",
+    "filter": "Miira",
+    "export": "Ergi",
+    "close": "Cufi",
+    "confirm_delete": "Mirkaneeffattee?",
+    "balance": "Hanqa",
+    "income": "Galii",
+    "expenses": "Baasii",
+    "amount": "Hanga",
+    "type": "Gosa",
+    "category": "Ramaddii",
+    "description": "Ibsa",
+    "date": "Guyyaa",
+    "currency": "Maallaqa",
+    "language": "Afaan",
+    "theme": "Haala",
+    "dark_mode": "Haala Dukkanaa'aa",
+    "light_mode": "Haala Ifaa"
+  },
+  "transaction": {
+    "add": "Jijjiirama Dabali",
+    "edit": "Jijjiirama Gulaali",
+    "delete": "Jijjiirama Balleessi"
+  },
+  "goal": {
+    "add": "Kaayyoo Dabali",
+    "edit": "Kaayyoo Gulaali",
+    "target": "Xiyyeeffannoo",
+    "current": "Amma",
+    "deadline": "Xumura Guyyaa",
+    "progress": "Fulduratti"
+  },
+  "budget": {
+    "add": "Bajata Dabali",
+    "edit": "Bajata Gulaali",
+    "spent": "Baafame",
+    "remaining": "Haftee",
+    "period": "Yeroo"
+  },
+  "recurring": {
+    "add": "Irra Deddeebi'aa Dabali",
+    "edit": "Irra Deddeebi'aa Gulaali",
+    "next_date": "Guyyaa Ittaanu",
+    "frequency": "Deddeebi'uu",
+    "active": "Hojiiraa",
+    "inactive": "Hojiiraa Hin Taane"
+  },
+  "profile": {
+    "edit": "Piroofayilii Gulaali",
+    "preferences": "Filannoo",
+    "exchange_rates": "Haala Waljijjiirraa Maallaqaa",
+    "account_info": "Odeeffannoo Herregaa",
+    "full_name": "Maqaa Guutuu",
+    "email": "Imeelii",
+    "phone": "Bilbila",
+    "change_password": "Jecha Icciitii Jijjiiri",
+    "delete_account": "Herrega Balleessi"
+  },
+  "report": {
+    "summary": "Guduunfaa",
+    "charts": "Kaartota",
+    "date_range": "Daangaa Guyyaa",
+    "this_week": "Torban Kana",
+    "this_month": "Ji'a Kana",
+    "last_30_days": "Guyyaa 30 Darbe",
+    "this_year": "Waggaa Kana",
+    "custom": "Filannoo Ofii"
+  },
+  "notifications": {
+    "title": "Beeksisa",
+    "mark_read": "Hunda akka dubbifameetti godhi",
+    "clear": "Hunda haqi",
+    "empty": "Beeksisa hin jiru"
+  },
+  "export": {
+    "csv": "CSV",
+    "pdf": "PDF",
+    "excel": "Excel"
+  },
+  "auth": {
+    "login": "Seenii",
+    "register": "Galmee",
+    "email": "Imeelii",
+    "password": "Jecha Icciitii",
+    "full_name": "Maqaa Guutuu",
+    "no_account": "Herrega hin qabduu?",
+    "has_account": "Herrega qabdaa?"
+  }
+}
