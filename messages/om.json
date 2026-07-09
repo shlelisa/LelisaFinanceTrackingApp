@@ -32,6 +32,7 @@
     "export": "Baasii",
     "export_csv": "CSV Baasi",
     "close": "Dhihi",
+    "clear": "Qulqulluu",
     "confirm_delete": "Dhugaa?",
     "balance": "Hirmaata",
     "income": "Galii",
@@ -102,7 +103,14 @@
     "category_header": "Garee",
     "amount_header": "Hammi",
     "type_header": "Akaakuu",
-    "actions_header": "Gumaachoota"
+    "actions_header": "Gumaachoota",
+    "type": "Akaakuu",
+    "amount": "Hammi",
+    "currency": "Sarba",
+    "category": "Garee",
+    "date": "Guyyaa",
+    "description": "Ibsa",
+    "select_category": "Garee filadhu"
   },
   "budgets": {
     "title": "Bajatota",
@@ -142,7 +150,8 @@
     "current_savings": "Oolmaa Ammaa",
     "current_placeholder": "0",
     "target_date": "Guyyaa Akaayyuu (filannoo)",
-    "category_optional": "Garee (filannoo)"
+    "category_optional": "Garee (filannoo)",
+    "select_category": "Garee filadhu"
   },
   "recurring": {
     "title": "Ragaalewwan Yeroo Yerootti",
@@ -237,6 +246,17 @@
     "currency_usd": "USD ($)",
     "currency_eur": "EUR (€)",
     "currency_gbp": "GBP (£)"
+  },
+  "change_password": {
+    "current": "Jecha Icciitii Ammaa",
+    "new": "Jecha Icciitii Haaraa",
+    "confirm": "Jecha Icciitii Haaraa Mirkaneeffadhu",
+    "current_required": "Jechi icciitii ammaa barbaachisa",
+    "new_min": "Jechi icciitii haaraa yoo xiqqaate qabxii 6 ta'uu qaba",
+    "confirm_match": "Jechoonni icciitii wal hin siman",
+    "wrong_current": "Jechi icciitii ammaa sirrii miti",
+    "success": "Jechi icciitii milkaa'inaan jijjiirrame",
+    "error": "Jechi icciitii jijjiiruu hin danda'amne"
   },
   "notifications": {
     "title": "Beeksifamoota",

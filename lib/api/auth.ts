@@ -15,3 +15,6 @@ export const updateProfileApi = (data: { fullName?: string; phone?: string }) =>
 
 export const updatePreferencesApi = (data: { currency?: string; language?: string; theme?: string }) =>
   api.put("/auth/preferences", data).then((r) => r.data.user);
+
+export const changePasswordApi = (data: { currentPassword: string; newPassword: string }) =>
+  api.put("/auth/change-password", data).then((r) => r.data);

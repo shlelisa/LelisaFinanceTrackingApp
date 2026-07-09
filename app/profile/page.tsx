@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile, useUpdatePreferences } from "@/hooks/useProfile";
+import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import { useRates } from "@/hooks/useRates";
 import {
   useExchangeRates,
@@ -36,6 +37,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [currency, setCurrency] = useState("ETB");
   const [language, setLanguage] = useState("English");
+  const [changePwdOpen, setChangePwdOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(DARK_MODE_KEY);
@@ -144,8 +146,10 @@ export default function ProfilePage() {
           ) : (
             <Button onClick={() => setEditing(true)}>{t("profile.edit")}</Button>
           )}
-            <Button variant="outline">{t("profile.change_password")}</Button>
-        </div>
+            <Button variant="outline" onClick={() => setChangePwdOpen(true)}>
+              {t("profile.change_password")}
+            </Button>
+          </div>
 
         <Separator />
 
@@ -209,6 +213,8 @@ export default function ProfilePage() {
             {t("profile.delete_account")}
           </Button>
         </div>
+
+        <ChangePasswordDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
       </div>
     </ProtectedRoute>
   );

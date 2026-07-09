@@ -32,6 +32,7 @@
     "export": "Export",
     "export_csv": "Export CSV",
     "close": "Close",
+    "clear": "Clear",
     "confirm_delete": "Are you sure?",
     "balance": "Balance",
     "income": "Income",
@@ -102,7 +103,14 @@
     "category_header": "Category",
     "amount_header": "Amount",
     "type_header": "Type",
-    "actions_header": "Actions"
+    "actions_header": "Actions",
+    "type": "Type",
+    "amount": "Amount",
+    "currency": "Currency",
+    "category": "Category",
+    "date": "Date",
+    "description": "Description",
+    "select_category": "Select a category"
   },
   "budgets": {
     "title": "Budgets",
@@ -142,7 +150,8 @@
     "current_savings": "Current Savings",
     "current_placeholder": "0",
     "target_date": "Target Date (optional)",
-    "category_optional": "Category (optional)"
+    "category_optional": "Category (optional)",
+    "select_category": "Select a category"
   },
   "recurring": {
     "title": "Recurring Transactions",
@@ -237,6 +246,17 @@
     "currency_usd": "USD ($)",
     "currency_eur": "EUR (€)",
     "currency_gbp": "GBP (£)"
+  },
+  "change_password": {
+    "current": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm New Password",
+    "current_required": "Current password is required",
+    "new_min": "New password must be at least 6 characters",
+    "confirm_match": "Passwords do not match",
+    "wrong_current": "Current password is incorrect",
+    "success": "Password changed successfully",
+    "error": "Failed to change password"
   },
   "notifications": {
     "title": "Notifications",

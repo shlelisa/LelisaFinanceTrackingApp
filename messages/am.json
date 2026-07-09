@@ -32,6 +32,7 @@
     "export": "አውጣ",
     "export_csv": "CSV አውጣ",
     "close": "ዝጋ",
+    "clear": "አጽዳ",
     "confirm_delete": "እርግጠኛ ነዎት?",
     "balance": "ቀሪ",
     "income": "ገቢ",
@@ -102,7 +103,14 @@
     "category_header": "ምድብ",
     "amount_header": "መጠን",
     "type_header": "ዓይነት",
-    "actions_header": "እርምጃዎች"
+    "actions_header": "እርምጃዎች",
+    "type": "ዓይነት",
+    "amount": "መጠን",
+    "currency": "ምንዛሬ",
+    "category": "ምድብ",
+    "date": "ቀን",
+    "description": "መግለጫ",
+    "select_category": "ምድብ ምረጥ"
   },
   "budgets": {
     "title": "በጀቶች",
@@ -142,7 +150,8 @@
     "current_savings": "የፍጹም ቁጠራ",
     "current_placeholder": "0",
     "target_date": "የዒላማ ቀን (አማራጭ)",
-    "category_optional": "ምድብ (አማራጭ)"
+    "category_optional": "ምድብ (አማራጭ)",
+    "select_category": "ምድብ ምረጥ"
   },
   "recurring": {
     "title": "የሚደገመው ኢልምም",
@@ -237,6 +246,17 @@
     "currency_usd": "USD ($)",
     "currency_eur": "EUR (€)",
     "currency_gbp": "GBP (£)"
+  },
+  "change_password": {
+    "current": "የአሁኑ የይለፍ ቃል",
+    "new": "አዲስ የይለፍ ቃል",
+    "confirm": "አዲስ የይለፍ ቃል ያረጋግጡ",
+    "current_required": "የአሁኑ የይለፍ ቃል ያስፈልጋል",
+    "new_min": "አዲሱ የይለፍ ቃል ቢያንም 6 ፊደላት ሊኖረው ይገባል",
+    "confirm_match": "የይለፍ ቃሎች አይዛመዱም",
+    "wrong_current": "የአሁኑ የይለፍ ቃል ትክክል አይደለም",
+    "success": "የይለፍ ቃል በተሳካ ሁኔታ ተቀይሯል",
+    "error": "የይለፍ ቃል ማሻሻያ አልተሳካም"
   },
   "notifications": {
     "title": "ማሳወቂያዎች",

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProfile, updateProfileApi, updatePreferencesApi } from "@/lib/api/auth";
+import { fetchProfile, updateProfileApi, updatePreferencesApi, changePasswordApi } from "@/lib/api/auth";
 
 export const PROFILE_KEY = ["profile"] as const;
 
@@ -24,5 +24,12 @@ export const useUpdatePreferences = () => {
     mutationFn: (data: { currency?: string; language?: string; theme?: "light" | "dark" }) =>
       updatePreferencesApi(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: PROFILE_KEY }),
+  });
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      changePasswordApi(data),
   });
 };
