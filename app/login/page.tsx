@@ -14,10 +14,11 @@ import {
 } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const fields: { name: keyof LoginInput; label: string; type: string }[] = [
-  { name: "email", label: "Email", type: "email" },
-  { name: "password", label: "Password", type: "password" },
+const fields: { name: keyof LoginInput; labelKey: string; type: string }[] = [
+  { name: "email", labelKey: "auth.email", type: "email" },
+  { name: "password", labelKey: "auth.password", type: "password" },
 ];
 
 const initialForm: LoginInput = { email: "", password: "" };
@@ -29,6 +30,7 @@ const LoginPage = () => {
   const { login } = useAuth();
   const router = useRouter();
   const mutation = useLogin();
+  const { t } = useTranslation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -55,18 +57,18 @@ const LoginPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-primary-lighter">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-primary">Login</CardTitle>
+          <CardTitle className="text-primary">{t("auth.login")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {fields.map((field) => (
               <div key={field.name} className="flex flex-col gap-2">
-                <Label htmlFor={field.name}>{field.label}</Label>
+                <Label htmlFor={field.name}>{t(field.labelKey)}</Label>
                 <Input
                   id={field.name}
                   name={field.name}
                   type={field.type}
-                  placeholder={field.label}
+                  placeholder={t(field.labelKey)}
                   value={form[field.name]}
                   onChange={handleChange}
                   required
@@ -78,25 +80,25 @@ const LoginPage = () => {
             ))}
 
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Logging in..." : "Login"}
+              {mutation.isPending ? t("common.logging_in") : t("auth.login")}
             </Button>
 
             {mutation.isError && (
               <p className="text-sm text-error">
                 {mutation.error instanceof Error
                   ? mutation.error.message
-                  : "Invalid credentials"}
+                  : t("auth.invalid_credentials")}
               </p>
             )}
 
             {mutation.isSuccess && (
-              <p className="text-sm text-success">Login successful!</p>
+              <p className="text-sm text-success">{t("auth.login_success")}</p>
             )}
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {t("auth.no_account")}{" "}
             <a href="/register" className="font-medium text-primary hover:underline">
-              Register
+              {t("auth.register")}
             </a>
           </p>
         </CardContent>

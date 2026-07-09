@@ -8,31 +8,31 @@ export function validateRegisterForm(
   const errors: ValidationErrors<RegisterForm> = {};
 
   if (!data.fullName.trim()) {
-    errors.fullName = "Full name is required";
+    errors.fullName = "validation.full_name_required";
   }
 
   if (!data.email.trim()) {
-    errors.email = "Email is required";
+    errors.email = "validation.email_required";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Invalid email format";
+    errors.email = "validation.email_invalid";
   }
 
   if (!data.phone.trim()) {
-    errors.phone = "Phone number is required";
+    errors.phone = "validation.phone_required";
   } else if (!/^\+?\d{7,15}$/.test(data.phone.replace(/[\s\-()]/g, ""))) {
-    errors.phone = "Invalid phone number";
+    errors.phone = "validation.phone_invalid";
   }
 
   if (!data.password) {
-    errors.password = "Password is required";
+    errors.password = "validation.password_required";
   } else if (data.password.length < 6) {
-    errors.password = "Password must be at least 6 characters";
+    errors.password = "validation.password_min";
   }
 
   if (!data.confirmPassword) {
-    errors.confirmPassword = "Please confirm your password";
+    errors.confirmPassword = "validation.confirm_password";
   } else if (data.password !== data.confirmPassword) {
-    errors.confirmPassword = "Passwords do not match";
+    errors.confirmPassword = "validation.passwords_match";
   }
 
   return errors;
@@ -44,13 +44,13 @@ export function validateLoginForm(
   const errors: ValidationErrors<LoginInput> = {};
 
   if (!data.email.trim()) {
-    errors.email = "Email is required";
+    errors.email = "validation.email_required";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Invalid email format";
+    errors.email = "validation.email_invalid";
   }
 
   if (!data.password) {
-    errors.password = "Password is required";
+    errors.password = "validation.password_required";
   }
 
   return errors;

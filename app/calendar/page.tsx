@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/hooks/useTransactions";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
-
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+import { useMessages } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CalendarPage() {
   const now = new Date();
+  const messages = useMessages();
+  const { t } = useTranslation();
+  const months = messages.calendar.months;
+  const weekdays = messages.calendar.weekdays;
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
 
@@ -67,7 +71,7 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="size-6 text-primary" />
-            <h1 className="text-2xl font-semibold text-primary">Financial Calendar</h1>
+            <h1 className="text-2xl font-semibold text-primary">{t("calendar.title")}</h1>
           </div>
         </div>
 
@@ -85,7 +89,7 @@ export default function CalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-px rounded-lg border bg-muted">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              {weekdays.map((d) => (
                 <div key={d} className="bg-background px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                   {d}
                 </div>
@@ -121,7 +125,7 @@ export default function CalendarPage() {
                     )}
                     {items.length > 0 && (
                       <p className="text-[10px] text-muted-foreground">
-                        {items.length} tx{items.length > 1 ? "s" : ""}
+                        {items.length} {t(items.length > 1 ? "calendar.txs" : "calendar.tx")}
                       </p>
                     )}
                   </div>
@@ -134,11 +138,11 @@ export default function CalendarPage() {
         {/* Selected day detail */}
         <Card>
           <CardHeader>
-            <CardTitle>Transactions This Month</CardTitle>
+            <CardTitle>{t("calendar.transactions_this_month")}</CardTitle>
           </CardHeader>
           <CardContent>
             {transactions.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">No transactions this month</p>
+              <p className="py-4 text-center text-sm text-muted-foreground">{t("calendar.no_transactions_month")}</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {transactions.map((tx) => (

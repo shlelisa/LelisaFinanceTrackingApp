@@ -1,8 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useBudgets } from "./useBudgets";
 import { showBudgetAlert } from "@/lib/notifications";
+import { useTranslation } from "@/hooks/useTranslation";
 
-export const useBudgetAlerts = () => {
+export const useBudgetAlerts = (
+  t: (key: string, values?: Record<string, unknown>) => string
+) => {
   const { data: budgets = [] } = useBudgets();
   const alertedRef = useRef<Set<string>>(new Set());
 
@@ -13,8 +16,8 @@ export const useBudgetAlerts = () => {
       alertedRef.current.add(key);
 
       if (budget.spent > 0) {
-        showBudgetAlert(budget.category, budget.spent, budget.limitAmount);
+        showBudgetAlert(budget.category, budget.spent, budget.limitAmount, t);
       }
     }
-  }, [budgets]);
+  }, [budgets, t]);
 };

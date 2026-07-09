@@ -23,6 +23,7 @@ import { Loader2, Download } from "lucide-react";
 import Money from "@/components/Money";
 import { exportCSV, exportPDF, exportExcel } from "@/lib/export";
 import api from "@/lib/axios";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const COLORS = [
   "#025aa2", "#4a9eff", "#7fc1ff", "#b0d8ff", "#e0f0ff",
@@ -31,16 +32,16 @@ const COLORS = [
 
 type ReportScope = "this-month" | "this-week" | "last-30" | "this-year" | "custom";
 
-const scopeLabels: Record<ReportScope, string> = {
-  "this-month": "This Month",
-  "this-week": "This Week",
-  "last-30": "Last 30 Days",
-  "this-year": "This Year",
-  "custom": "Custom Range",
-};
-
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const now = new Date();
+  const scopeLabels: Record<ReportScope, string> = {
+    "this-month": t("reports.scope_this_month"),
+    "this-week": t("reports.scope_this_week"),
+    "last-30": t("reports.scope_last_30_days"),
+    "this-year": t("reports.scope_this_year"),
+    "custom": t("reports.scope_custom"),
+  };
   const [scope, setScope] = useState<ReportScope>("this-month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState(now.toISOString().slice(0, 10));
@@ -124,7 +125,7 @@ export default function ReportsPage() {
     const data = getCsvData();
     if (!data.length) return;
     exportPDF(
-      `Financial Report - ${scopeLabels[scope]}`,
+      t("reports.pdf_title", { scope: scopeLabels[scope] }),
       ["Period", "Income", "Expense"],
       data.map((r: any) => [r.Period, String(r.Income), String(r.Expense)]),
       `report-${scope}`,
@@ -155,20 +156,20 @@ export default function ReportsPage() {
     <ProtectedRoute>
       <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-primary">
-            Financial Reports
-          </h1>
+            <h1 className="text-2xl font-semibold text-primary">
+              {t("reports.title")}
+            </h1>
           <div className="flex items-center gap-2">
             {reportData && (
               <>
                 <Button variant="outline" size="sm" onClick={handleExportCSV}>
-                  <Download className="mr-1 size-4" /> CSV
+                  <Download className="mr-1 size-4" /> {t("reports.csv")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                  <Download className="mr-1 size-4" /> PDF
+                  <Download className="mr-1 size-4" /> {t("reports.pdf")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleExportExcel}>
-                  <Download className="mr-1 size-4" /> Excel
+                  <Download className="mr-1 size-4" /> {t("reports.excel")}
                 </Button>
               </>
             )}
@@ -193,7 +194,7 @@ export default function ReportsPage() {
         {scope === "custom" && (
           <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-4">
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Start</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t("reports.start")}</label>
               <input
                 type="date"
                 value={customStart}
@@ -202,7 +203,7 @@ export default function ReportsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">End</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t("reports.end")}</label>
               <input
                 type="date"
                 value={customEnd}
@@ -210,14 +211,14 @@ export default function ReportsPage() {
                 className="rounded-md border bg-background px-3 py-2 text-sm"
               />
             </div>
-            <Button size="sm" onClick={handleCustomSearch}>Generate</Button>
+            <Button size="sm" onClick={handleCustomSearch}>{t("reports.generate")}</Button>
           </div>
         )}
 
         {!reportData && scope !== "custom" && !loading && (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Select a report scope above to generate data
+              {t("reports.empty")}
             </CardContent>
           </Card>
         )}
@@ -232,7 +233,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Card>
                 <CardContent className="py-4">
-                  <p className="text-sm text-muted-foreground">Income</p>
+                  <p className="text-sm text-muted-foreground">{t("reports.income")}</p>
                   <p className="text-2xl font-bold text-green-500">
                     <Money amount={totalIncome} />
                   </p>
@@ -240,7 +241,7 @@ export default function ReportsPage() {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <p className="text-sm text-muted-foreground">Expenses</p>
+                  <p className="text-sm text-muted-foreground">{t("reports.expenses")}</p>
                   <p className="text-2xl font-bold text-red-500">
                     <Money amount={totalExpenses} />
                   </p>
@@ -248,7 +249,7 @@ export default function ReportsPage() {
               </Card>
               <Card>
                 <CardContent className="py-4">
-                  <p className="text-sm text-muted-foreground">Savings</p>
+                  <p className="text-sm text-muted-foreground">{t("reports.savings")}</p>
                   <p className={`text-2xl font-bold ${totalIncome - totalExpenses >= 0 ? "text-green-500" : "text-red-500"}`}>
                     <Money amount={totalIncome - totalExpenses} />
                   </p>
@@ -259,11 +260,11 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Expense Categories</CardTitle>
+                  <CardTitle>{t("reports.expense_categories")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {categoryBreakdown.length === 0 ? (
-                    <p className="py-10 text-center text-sm text-muted-foreground">No expense data</p>
+                    <p className="py-10 text-center text-sm text-muted-foreground">{t("reports.no_expense_data")}</p>
                   ) : (
                     <>
                       <ResponsiveContainer width="100%" height={260}>
@@ -303,11 +304,11 @@ export default function ReportsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Categories</CardTitle>
+                  <CardTitle>{t("reports.top_categories")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {categoryBreakdown.length === 0 ? (
-                    <p className="py-10 text-center text-sm text-muted-foreground">No data</p>
+                    <p className="py-10 text-center text-sm text-muted-foreground">{t("reports.no_data")}</p>
                   ) : (
                     <ResponsiveContainer width="100%" height={260}>
                       <BarChart
@@ -335,11 +336,11 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Trend ({scopeLabels[scope]})</CardTitle>
+                <CardTitle>{t("reports.trend", { scope: scopeLabels[scope] })}</CardTitle>
               </CardHeader>
               <CardContent>
                 {trendData.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-muted-foreground">No data</p>
+                  <p className="py-10 text-center text-sm text-muted-foreground">{t("reports.no_data")}</p>
                 ) : (
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
@@ -347,8 +348,8 @@ export default function ReportsPage() {
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="income" stroke="#025aa2" strokeWidth={2} name="Income" />
-                      <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={2} name="Expenses" />
+                       <Line type="monotone" dataKey="income" stroke="#025aa2" strokeWidth={2} name={t("reports.income_label")} />
+                       <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={2} name={t("reports.expense_label")} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}

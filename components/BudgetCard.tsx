@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Money from "@/components/Money";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -13,6 +14,7 @@ interface BudgetCardProps {
 }
 
 const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
+  const { t } = useTranslation();
   const spentPercentage =
     budget.limitAmount > 0
       ? Math.min((budget.spent / budget.limitAmount) * 100, 999)
@@ -30,11 +32,11 @@ const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium">{budget.category}</CardTitle>
-        {isExceeded && <Badge variant="destructive">Exceeded</Badge>}
+        {isExceeded && <Badge variant="destructive">{t("budgets.exceeded")}</Badge>}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Spent</span>
+          <span>{t("budgets.spent")}</span>
           <span>
             <Money amount={budget.spent} /> /{" "}
             <Money amount={budget.limitAmount} />
@@ -48,23 +50,23 @@ const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
         <div className="flex justify-between items-center">
           <p className={`text-sm font-medium ${isExceeded ? "text-destructive" : ""}`}>
             {isExceeded
-              ? <>Overspent by <Money amount={Math.abs(budget.remaining)} /></>
-              : <>Remaining: <Money amount={budget.remaining} /></>}
+              ? <>{t("budgets.overspent_by")} <Money amount={Math.abs(budget.remaining)} /></>
+              : <>{t("budgets.remaining")} <Money amount={budget.remaining} /></>}
           </p>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => onEdit(budget)}>
-              Edit
+              {t("common.edit")}
             </Button>
             <Button
               variant="destructive"
               size="sm"
               onClick={() => {
-                if (confirm("Are you sure you want to delete this budget?")) {
+                if (confirm(t("budgets.delete_confirm"))) {
                   onDelete(budget._id);
                 }
               }}
             >
-              Delete
+              {t("common.delete")}
             </Button>
           </div>
         </div>

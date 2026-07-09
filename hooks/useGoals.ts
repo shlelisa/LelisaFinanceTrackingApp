@@ -7,6 +7,8 @@ import {
   updateGoal as updateGoalApi,
   deleteGoal as deleteGoalApi,
 } from "@/lib/api/goals";
+import { showGoalAchieved } from "@/lib/notifications";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export const GOALS_KEY = ["goals"] as const;
 
@@ -27,10 +29,16 @@ export const useCreateGoal = () => {
 
 export const useUpdateGoal = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateGoalInput }) =>
       updateGoalApi(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: GOALS_KEY }),
+    onSuccess: (updated: Goal) => {
+      queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      if (updated.currentAmount >= updated.targetAmount) {
+        showGoalAchieved(updated.name, t);
+      }
+    },
   });
 };
 

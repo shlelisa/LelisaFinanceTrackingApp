@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { RefreshCw, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import Money from "@/components/Money";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface RecurringCardProps {
   item: RecurringTransaction;
@@ -14,14 +15,8 @@ interface RecurringCardProps {
   onToggleActive: (id: string, active: boolean) => void;
 }
 
-const frequencyLabels: Record<string, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  yearly: "Yearly",
-};
-
 const RecurringCard = ({ item, onEdit, onDelete, onToggleActive }: RecurringCardProps) => {
+  const { t } = useTranslation();
   return (
     <Card className={!item.isActive ? "opacity-60" : ""}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -35,7 +30,7 @@ const RecurringCard = ({ item, onEdit, onDelete, onToggleActive }: RecurringCard
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={item.isActive ? "default" : "secondary"}>
-            {frequencyLabels[item.frequency]}
+            {t(`recurring.${item.frequency}`)}
           </Badge>
           <Switch
             checked={item.isActive}
@@ -45,7 +40,7 @@ const RecurringCard = ({ item, onEdit, onDelete, onToggleActive }: RecurringCard
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Category</span>
+          <span className="text-muted-foreground">{t("recurring.category")}</span>
           <span>{item.category}</span>
         </div>
         <div className="flex justify-between text-sm">
@@ -55,31 +50,31 @@ const RecurringCard = ({ item, onEdit, onDelete, onToggleActive }: RecurringCard
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Next</span>
+          <span className="text-muted-foreground">{t("recurring.next")}</span>
           <span>{new Date(item.nextDate).toLocaleDateString()}</span>
         </div>
         {item.endDate && (
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Ends</span>
+            <span className="text-muted-foreground">{t("recurring.ends")}</span>
             <span>{new Date(item.endDate).toLocaleDateString()}</span>
           </div>
         )}
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <RefreshCw className="size-3" />
-          Every {frequencyLabels[item.frequency].toLowerCase()}
+          {t("recurring.every", { frequency: t(`recurring.${item.frequency}`) })}
         </div>
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
-            Edit
+            {t("common.edit")}
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => {
-              if (confirm("Delete this recurring transaction?")) onDelete(item._id);
+              if (confirm(t("recurring.delete_confirm"))) onDelete(item._id);
             }}
           >
-            Delete
+            {t("common.delete")}
           </Button>
         </div>
       </CardContent>

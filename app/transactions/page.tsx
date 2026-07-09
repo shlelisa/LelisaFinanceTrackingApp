@@ -27,8 +27,10 @@ import { CATEGORIES } from "@/lib/constants";
 import type { TransactionFormValues } from "@/lib/validation/transaction";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TransactionsPage() {
+  const { t } = useTranslation();
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -61,14 +63,14 @@ export default function TransactionsPage() {
             onCheckedChange={(value) =>
               table.toggleAllPageRowsSelected(!!value)
             }
-            aria-label="Select all"
+            aria-label={t("common.select_all")}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
+            aria-label={t("common.select_row")}
           />
         ),
         enableSorting: false,
@@ -77,7 +79,7 @@ export default function TransactionsPage() {
       },
       {
         accessorKey: "date",
-        header: "Date",
+        header: t("transaction.date_header"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="text-xs tabular-nums">
@@ -88,19 +90,19 @@ export default function TransactionsPage() {
       },
       {
         accessorKey: "description",
-        header: "Description",
+        header: t("transaction.description_header"),
         enableSorting: true,
         size: 200,
       },
       {
         accessorKey: "category",
-        header: "Category",
+        header: t("transaction.category_header"),
         enableSorting: true,
         size: 130,
       },
       {
         accessorKey: "amount",
-        header: "Amount",
+        header: t("transaction.amount_header"),
         enableSorting: true,
         cell: ({ row }) => {
           const tx = row.original;
@@ -124,7 +126,7 @@ export default function TransactionsPage() {
       },
       {
         accessorKey: "type",
-        header: "Type",
+        header: t("transaction.type_header"),
         enableSorting: true,
         cell: ({ row }) => (
           <Badge
@@ -137,7 +139,7 @@ export default function TransactionsPage() {
       },
       {
         id: "actions",
-        header: "Actions",
+        header: t("transaction.actions_header"),
         enableSorting: false,
         enableHiding: false,
         size: 150,
@@ -151,21 +153,21 @@ export default function TransactionsPage() {
                 setEditTx(row.original);
                 setFormOpen(true);
               }}
-            >
-              Edit
-            </Button>
+              >
+                {t("common.edit")}
+              </Button>
             <Button
               size="sm"
               variant="destructive"
               className="h-8 px-2 text-xs"
               onClick={async () => {
-                if (confirm("Delete this transaction?")) {
+                if (confirm(t("transaction.delete_confirm"))) {
                   await deleteTx(row.original._id);
                 }
               }}
-            >
-              Delete
-            </Button>
+              >
+                {t("common.delete")}
+              </Button>
           </div>
         ),
       },
@@ -186,21 +188,21 @@ export default function TransactionsPage() {
     <ProtectedRoute>
       <div className="mx-auto flex max-w-6xl flex-col gap-4 p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-primary">Transactions</h1>
+          <h1 className="text-2xl font-semibold text-primary">{t("transaction.title")}</h1>
           <Button
             onClick={() => {
               setEditTx(null);
               setFormOpen(true);
             }}
           >
-            + Add Transaction
+            {t("transaction.add")}
           </Button>
         </div>
 
         {/* Server-side filters */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">Type</Label>
+            <Label className="text-xs text-muted-foreground">{t("common.type")}</Label>
             <Select
               value={typeFilter}
               onValueChange={(v) =>
@@ -211,15 +213,15 @@ export default function TransactionsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
+                <SelectItem value="all">{t("common.all")}</SelectItem>
+                <SelectItem value="income">{t("common.income")}</SelectItem>
+                <SelectItem value="expense">{t("common.expenses")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">Category</Label>
+            <Label className="text-xs text-muted-foreground">{t("common.category")}</Label>
             <Select
               value={categoryFilter}
               onValueChange={(v) => setCategoryFilter(v ?? "all")}
@@ -231,7 +233,7 @@ export default function TransactionsPage() {
                 <SelectItem value="all">All</SelectItem>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat}
+                    {t(`categories.${cat}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -239,7 +241,7 @@ export default function TransactionsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">Date</Label>
+            <Label className="text-xs text-muted-foreground">{t("common.date")}</Label>
             <Input
               type="date"
               value={dateRange.start}
@@ -265,7 +267,13 @@ export default function TransactionsPage() {
           data={transactions}
           columns={columns}
           isLoading={isLoading}
-          exportHeaders={["Date", "Description", "Category", "Amount", "Type"]}
+          exportHeaders={[
+            t("common.date"),
+            t("common.description"),
+            t("common.category"),
+            t("common.amount"),
+            t("common.type"),
+          ]}
           exportRow={(r) => [
             new Date(r.date).toLocaleDateString(),
             r.description,
@@ -280,13 +288,13 @@ export default function TransactionsPage() {
                 variant="destructive"
                 className="h-8 text-xs"
                 onClick={async () => {
-                  if (confirm(`Delete ${selectedRows.length} selected transactions?`)) {
+                  if (confirm(t("transaction.delete_selected_confirm", { count: selectedRows.length }))) {
                     await Promise.all(selectedRows.map((tx) => deleteTx(tx._id)));
                     clearSelection();
                   }
                 }}
               >
-                Delete Selected
+                {t("transaction.delete_selected")}
               </Button>
               <Button
                 size="sm"
@@ -294,8 +302,7 @@ export default function TransactionsPage() {
                 className="h-8 text-xs text-muted-foreground"
                 onClick={clearSelection}
               >
-                Clear
-              </Button>
+                {t("common.clear")}
             </div>
           )}
         />

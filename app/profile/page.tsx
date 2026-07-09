@@ -17,11 +17,13 @@ import {
 } from "@/hooks/useExchangeRates";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Save, Loader2, RefreshCw, Pencil, Trash2, Check, X } from "lucide-react";
 
 const DARK_MODE_KEY = "dark_mode";
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const router = useRouter();
   const { data: profile, isLoading } = useProfile();
@@ -94,11 +96,11 @@ export default function ProfilePage() {
   return (
     <ProtectedRoute>
       <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
-        <h1 className="text-2xl font-semibold text-primary">Profile</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t("profile.title")}</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle>{t("profile.account_info")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
             <div className="flex size-20 items-center justify-center rounded-full bg-primary-lighter text-3xl font-bold text-primary">
@@ -106,7 +108,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-1 flex-col gap-3">
               <div>
-                <Label>Full Name</Label>
+                <Label>{t("profile.full_name")}</Label>
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -115,11 +117,11 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>{t("profile.email")}</Label>
                 <Input value={profile?.email ?? ""} readOnly />
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{t("profile.phone")}</Label>
                 <Input
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
@@ -135,42 +137,42 @@ export default function ProfilePage() {
           {editing ? (
             <>
               <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
-                {updateProfileMutation.isPending ? "Saving..." : <><Save className="mr-1 size-4" /> Save</>}
+                {updateProfileMutation.isPending ? t("common.saving") : <><Save className="mr-1 size-4" /> {t("common.save")}</>}
               </Button>
-              <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setEditing(false)}>{t("common.cancel")}</Button>
             </>
           ) : (
-            <Button onClick={() => setEditing(true)}>Edit Profile</Button>
+            <Button onClick={() => setEditing(true)}>{t("profile.edit")}</Button>
           )}
-          <Button variant="outline">Change Password</Button>
+            <Button variant="outline">{t("profile.change_password")}</Button>
         </div>
 
         <Separator />
 
         <Card>
           <CardHeader>
-            <CardTitle>Preferences</CardTitle>
+            <CardTitle>{t("profile.preferences")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Dark Mode</span>
+              <span className="text-sm font-medium">{t("common.dark_mode")}</span>
               <Switch checked={dark} onCheckedChange={toggleDark} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Currency</span>
+              <span className="text-sm font-medium">{t("common.currency")}</span>
               <select
                 value={currency}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
                 className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
               >
-                <option value="ETB">ETB (Birr)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
+                <option value="ETB">{t("profile.currency_etb")}</option>
+                <option value="USD">{t("profile.currency_usd")}</option>
+                <option value="EUR">{t("profile.currency_eur")}</option>
+                <option value="GBP">{t("profile.currency_gbp")}</option>
               </select>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Language</span>
+              <span className="text-sm font-medium">{t("common.language")}</span>
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value)}
@@ -186,7 +188,7 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Exchange Rates</CardTitle>
+            <CardTitle>{t("profile.exchange_rates")}</CardTitle>
             <RefreshCw className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -198,13 +200,13 @@ export default function ProfilePage() {
           <Button
             variant="destructive"
             onClick={() => {
-              if (confirm("Are you sure you want to delete your account?")) {
+              if (confirm(t("profile.delete_account_confirm"))) {
                 logout();
                 router.push("/login");
               }
             }}
-          >
-            Delete Account
+            >
+            {t("profile.delete_account")}
           </Button>
         </div>
       </div>
@@ -213,15 +215,16 @@ export default function ProfilePage() {
 }
 
 function EditableRates() {
+  const { t } = useTranslation();
   const { data: liveRates, isLoading: liveLoading } = useRates();
   const { data: userRates, isLoading: userLoading } = useExchangeRates();
   const upsertMutation = useUpsertExchangeRate();
   const deleteMutation = useDeleteExchangeRate();
 
   const currencies = [
-    { code: "USD", name: "US Dollar" },
-    { code: "EUR", name: "Euro" },
-    { code: "GBP", name: "British Pound" },
+    { code: "USD", name: t("profile.us_dollar") },
+    { code: "EUR", name: t("profile.euro") },
+    { code: "GBP", name: t("profile.british_pound") },
   ];
 
   const [editing, setEditing] = useState<string | null>(null);
@@ -256,7 +259,7 @@ function EditableRates() {
   };
 
   if (liveLoading || userLoading) {
-    return <p className="text-sm text-muted-foreground">Loading rates...</p>;
+    return <p className="text-sm text-muted-foreground">{t("profile.loading_rates")}</p>;
   }
 
   return (
@@ -270,7 +273,7 @@ function EditableRates() {
             <div className="flex items-center gap-2">
               {editing === c.code ? (
                 <>
-                  <span className="text-xs text-muted-foreground">1 {c.code} =</span>
+                  <span className="text-xs text-muted-foreground">{t("profile.rate_equals", { code: c.code })}</span>
                   <input
                     type="number"
                     step="0.01"
@@ -279,7 +282,7 @@ function EditableRates() {
                     onChange={(e) => setEditValue(e.target.value)}
                     className="w-24 rounded border border-border bg-background px-2 py-0.5 text-right text-sm"
                   />
-                  <span className="text-xs text-muted-foreground">ETB</span>
+                  <span className="text-xs text-muted-foreground">{t("profile.rate_unit")}</span>
                   <button onClick={() => saveEdit(c.code)} className="text-success hover:text-success/80">
                     <Check className="size-4" />
                   </button>
@@ -290,9 +293,9 @@ function EditableRates() {
               ) : (
                 <>
                   <span className="text-sm text-muted-foreground">
-                    1 {c.code} = <strong>{effective?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}</strong> ETB
+                    1 {c.code} = <strong>{effective?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "—"}</strong> {t("profile.rate_unit")}
                   </span>
-                  {isOverridden && <span className="text-[10px] text-warning font-medium">custom</span>}
+                  {isOverridden && <span className="text-[10px] text-warning font-medium">{t("profile.custom")}</span>}
                   <button onClick={() => startEdit(c.code)} className="text-muted-foreground hover:text-foreground">
                     <Pencil className="size-3.5" />
                   </button>
@@ -307,7 +310,7 @@ function EditableRates() {
           </div>
         );
       })}
-      <p className="mt-1 text-xs text-muted-foreground">Override any rate to use your own value for future transactions</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("profile.override_rates")}</p>
     </div>
   );
 }

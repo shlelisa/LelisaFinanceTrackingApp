@@ -15,29 +15,35 @@ import Money from "@/components/Money";
 import { useDashboardSummary } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: summary, isLoading } = useDashboardSummary();
   const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
+    hour < 12
+      ? t("dashboard.greeting_morning")
+      : hour < 18
+        ? t("dashboard.greeting_afternoon")
+        : t("dashboard.greeting_evening");
 
   const cards = [
     {
-      label: "Balance",
+      label: t("common.balance"),
       value: summary?.balance ?? 0,
       color: "text-primary",
       bg: "bg-primary/5",
     },
     {
-      label: "Income",
+      label: t("common.income"),
       value: summary?.totalIncome ?? 0,
       color: "text-success",
       bg: "bg-success/5",
     },
     {
-      label: "Expenses",
+      label: t("common.expenses"),
       value: summary?.totalExpenses ?? 0,
       color: "text-error",
       bg: "bg-error/5",
@@ -54,7 +60,7 @@ export default function DashboardPage() {
             {greeting} 👋
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Here&apos;s your financial overview today.
+            {t("dashboard.subtitle")}
           </p>
         </div>
 
@@ -84,7 +90,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Expense Breakdown</CardTitle>
+              <CardTitle>{t("dashboard.expense_breakdown")}</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -97,7 +103,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>{t("dashboard.recent_transactions")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {isLoading ? (
@@ -108,7 +114,7 @@ export default function DashboardPage() {
                 </div>
               ) : recentTransactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No transactions yet.
+                  {t("dashboard.no_transactions")}
                 </p>
               ) : (
                 recentTransactions.map((tx) => (
@@ -143,21 +149,21 @@ export default function DashboardPage() {
             onClick={() => router.push("/transactions")}
             className="flex-1 sm:flex-none"
           >
-            Add Transaction
+            {t("dashboard.add_transaction")}
           </Button>
           <Button
             variant="outline"
             onClick={() => router.push("/reports")}
             className="flex-1 sm:flex-none"
           >
-            View Reports
+            {t("common.view_reports")}
           </Button>
           <Button
             variant="outline"
             onClick={() => router.push("/budgets")}
             className="flex-1 sm:flex-none"
           >
-            Manage Budgets
+            {t("common.manage_budgets")}
           </Button>
         </div>
       </div>

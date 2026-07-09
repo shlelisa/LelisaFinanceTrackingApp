@@ -33,6 +33,7 @@ import {
 } from "@tanstack/react-table";
 import { useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const escapeCsv = (val: string): string => {
   if (val.includes(",") || val.includes('"') || val.includes("\n")) {
@@ -58,6 +59,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   exportRow,
   renderBulkActions,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -112,7 +114,7 @@ export default function DataTable<T extends Record<string, unknown>>({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Search all columns..."
+          placeholder={t("common.search_all")}
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-xs"
@@ -123,12 +125,12 @@ export default function DataTable<T extends Record<string, unknown>>({
           onValueChange={(v) => table.setPageSize(Number(v))}
         >
           <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="Rows" />
+            <SelectValue placeholder={t("common.rows")} />
           </SelectTrigger>
           <SelectContent>
             {[5, 10, 20, 50].map((size) => (
               <SelectItem key={size} value={size.toString()}>
-                {size} rows
+                {size} {t("common.rows")}
               </SelectItem>
             ))}
           </SelectContent>
@@ -136,10 +138,10 @@ export default function DataTable<T extends Record<string, unknown>>({
 
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-xs outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50">
-            Columns
+            {t("common.columns")}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("common.toggle_columns")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {table
               .getAllColumns()
@@ -150,7 +152,9 @@ export default function DataTable<T extends Record<string, unknown>>({
                   checked={col.getIsVisible()}
                   onCheckedChange={(value) => col.toggleVisibility(!!value)}
                 >
-                  {col.id.charAt(0).toUpperCase() + col.id.slice(1)}
+                  {col.id === "actions"
+                    ? t("common.actions")
+                    : col.id.charAt(0).toUpperCase() + col.id.slice(1)}
                 </DropdownMenuCheckboxItem>
               ))}
           </DropdownMenuContent>
@@ -158,7 +162,7 @@ export default function DataTable<T extends Record<string, unknown>>({
 
         {exportHeaders && exportRow && (
           <Button variant="outline" size="sm" onClick={handleExport}>
-            Export CSV
+            {t("common.export_csv")}
           </Button>
         )}
       </div>
@@ -166,7 +170,7 @@ export default function DataTable<T extends Record<string, unknown>>({
       {/* Bulk action bar */}
       {selectedCount > 0 && renderBulkActions && (
         <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2 text-sm">
-          <span className="font-medium">{selectedCount} selected</span>
+          <span className="font-medium">{selectedCount} {t("common.selected")}</span>
           {renderBulkActions(
             selectedRows.map((r) => r.original),
             () => setRowSelection({})
@@ -215,7 +219,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                   >
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="size-4 animate-spin" />
-                      Loading...
+                      {t("common.loading")}
                     </div>
                   </td>
                 </tr>
@@ -225,7 +229,8 @@ export default function DataTable<T extends Record<string, unknown>>({
                     colSpan={columns.length}
                     className="px-4 py-12 text-center text-muted-foreground"
                   >
-                    No data found.
+                    {t("common.no_data")}
+
                   </td>
                 </tr>
               ) : (
@@ -254,13 +259,13 @@ export default function DataTable<T extends Record<string, unknown>>({
         {/* Pagination */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3 text-sm text-muted-foreground">
           <span>
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {t("common.page")} {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()} ({table.getFilteredRowModel().rows.length} total)
           </span>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
-              <span>Go to</span>
+              <span>{t("common.go_to")}</span>
               <Input
                 type="number"
                 min={1}

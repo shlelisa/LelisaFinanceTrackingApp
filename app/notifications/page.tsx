@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const refresh = () => setNotifications(getNotifications());
@@ -38,20 +40,20 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="size-6 text-primary" />
-            <h1 className="text-2xl font-semibold text-primary">Notifications</h1>
+            <h1 className="text-2xl font-semibold text-primary">{t("notifications.title")}</h1>
             {unreadCount > 0 && (
-              <Badge variant="default">{unreadCount} unread</Badge>
+              <Badge variant="default">{t("notifications.unread", { count: unreadCount })}</Badge>
             )}
           </div>
           <div className="flex gap-2">
             {unreadCount > 0 && (
               <Button variant="outline" size="sm" onClick={() => { markAllAsRead(); refresh(); }}>
-                <CheckCheck className="mr-1 size-4" /> Mark all read
+                 <CheckCheck className="mr-1 size-4" /> {t("notifications.mark_read")}
               </Button>
             )}
             {notifications.length > 0 && (
               <Button variant="outline" size="sm" onClick={() => { clearNotifications(); refresh(); }}>
-                <Trash2 className="mr-1 size-4" /> Clear all
+                 <Trash2 className="mr-1 size-4" /> {t("notifications.clear_all")}
               </Button>
             )}
           </div>
@@ -60,8 +62,8 @@ export default function NotificationsPage() {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-20 text-muted-foreground">
             <BellOff className="size-12" />
-            <p className="text-lg">No notifications yet</p>
-            <p>Notifications about budgets, goals, and more will appear here</p>
+            <p className="text-lg">{t("notifications.empty")}</p>
+            <p>{t("notifications.empty_subtext")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { User, Settings, LogOut } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function UserDropdown() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -21,7 +23,7 @@ export default function UserDropdown() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const fullName = user?.fullName ?? "User";
+  const fullName = user?.fullName ?? t("user.guest");
   const email = user?.email ?? "";
   const initial = fullName.charAt(0).toUpperCase();
 
@@ -44,14 +46,14 @@ export default function UserDropdown() {
             onClick={() => { router.push("/profile"); setOpen(false); }}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <User className="size-4" /> Profile
+            <User className="size-4" /> {t("user.profile")}
           </button>
           <div className="border-t" />
           <button
             onClick={() => { logout(); router.push("/login"); setOpen(false); }}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <LogOut className="size-4" /> Logout
+            <LogOut className="size-4" /> {t("user.logout")}
           </button>
         </div>
       )}

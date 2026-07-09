@@ -13,8 +13,10 @@ import BudgetCard from "@/components/BudgetCard";
 import BudgetForm from "@/components/BudgetForm";
 import type { Budget } from "@/lib/types/budget";
 import type { BudgetFormValues } from "@/lib/validation/budget";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function BudgetsPage() {
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editBudget, setEditBudget] = useState<Budget | null>(null);
 
@@ -53,12 +55,12 @@ export default function BudgetsPage() {
     <ProtectedRoute>
       <div className="mx-auto flex max-w-6xl flex-col gap-4 p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-primary">Budgets</h1>
-          <Button onClick={() => setFormOpen(true)}>+ Create Budget</Button>
+          <h1 className="text-2xl font-semibold text-primary">{t("budgets.title")}</h1>
+          <Button onClick={() => setFormOpen(true)}>{t("budgets.add")}</Button>
         </div>
 
         {isLoading ? (
-          <p>Loading budgets...</p>
+          <p>{t("budgets.loading")}</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {budgets.map((budget) => (

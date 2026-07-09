@@ -51,37 +51,55 @@ export const clearNotifications = () => {
   localStorage.removeItem(STORAGE_KEY);
 };
 
-export const showBudgetAlert = (category: string, spent: number, limit: number) => {
+export const showBudgetAlert = (
+  category: string,
+  spent: number,
+  limit: number,
+  t: (key: string, values?: Record<string, unknown>) => string
+) => {
   const percentage = (spent / limit) * 100;
 
   if (percentage >= 100) {
-    toast.error(`Budget exceeded!`, {
-      description: `${category} budget of ${limit.toLocaleString()} fully used (${spent.toLocaleString()} spent).`,
+    toast.error(t("alerts.budget_exceeded_title"), {
+      description: t("alerts.budget_exceeded_desc", { category, limit, spent }),
     });
     addNotification({
       type: "budget_exceeded",
-      title: "Budget Exceeded",
-      message: `${category} budget of ${limit.toLocaleString()} has been exceeded. Spent: ${spent.toLocaleString()}.`,
+      title: t("alerts.budget_exceeded_notif_title"),
+      message: t("alerts.budget_exceeded_notif_msg", { category, limit, spent }),
     });
   } else if (percentage >= 90) {
-    toast.warning(`Budget nearly full`, {
-      description: `${category} budget is ${Math.round(percentage)}% used (${spent.toLocaleString()} / ${limit.toLocaleString()}).`,
+    toast.warning(t("alerts.budget_nearly_full_title"), {
+      description: t("alerts.budget_nearly_full_desc", {
+        category,
+        pct: Math.round(percentage),
+        spent,
+        limit,
+      }),
     });
     addNotification({
       type: "budget_warning",
-      title: "Budget Warning",
-      message: `${category} budget is ${Math.round(percentage)}% used (${spent.toLocaleString()} / ${limit.toLocaleString()}).`,
+      title: t("alerts.budget_warning_notif_title"),
+      message: t("alerts.budget_warning_notif_msg", {
+        category,
+        pct: Math.round(percentage),
+        spent,
+        limit,
+      }),
     });
   }
 };
 
-export const showGoalAchieved = (name: string) => {
-  toast.success(`Goal achieved!`, {
-    description: `Congratulations! You reached your "${name}" savings goal.`,
+export const showGoalAchieved = (
+  name: string,
+  t: (key: string, values?: Record<string, unknown>) => string
+) => {
+  toast.success(t("alerts.goal_achieved_title"), {
+    description: t("alerts.goal_achieved_desc", { name }),
   });
   addNotification({
     type: "goal_achieved",
-    title: "Goal Achieved",
-    message: `Congratulations! You reached your "${name}" savings goal.`,
+    title: t("alerts.goal_achieved_notif_title"),
+    message: t("alerts.goal_achieved_notif_msg", { name }),
   });
 };

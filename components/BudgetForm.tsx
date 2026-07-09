@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { budgetFormSchema, BudgetFormValues } from "@/lib/validation/budget";
 import { CATEGORIES } from "@/lib/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface BudgetFormProps {
   open: boolean;
@@ -45,6 +46,7 @@ const BudgetForm = ({
   mode,
   existingCategories,
 }: BudgetFormProps) => {
+  const { t } = useTranslation();
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetFormSchema) as any,
     defaultValues: { category: "", limitAmount: 0, ...defaultValues },
@@ -70,7 +72,7 @@ const BudgetForm = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Create" : "Edit"} Budget
+            {mode === "create" ? t("budgets.create") : t("budgets.edit")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -78,47 +80,47 @@ const BudgetForm = ({
             <FormField
               control={form.control}
               name="category"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || ""}
-                    disabled={mode === "edit"}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {availableCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
+                  <FormLabel>{t("budgets.category")}</FormLabel>
+                   <Select
+                     onValueChange={field.onChange}
+                     value={field.value || ""}
+                     disabled={mode === "edit"}
+                   >
+                     <FormControl>
+                       <SelectTrigger>
+                         <SelectValue placeholder={t("budgets.select_category")} />
+                       </SelectTrigger>
+                     </FormControl>
+                     <SelectContent>
+                       {availableCategories.map((cat) => (
+                         <SelectItem key={cat} value={cat}>
+                           {t(`categories.${cat}`)}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                   <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
+                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="limitAmount"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Budget Amount</FormLabel>
+                  <FormLabel>{t("budgets.budget_amount")}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="5000" {...field} />
+                    <Input type="number" placeholder={t("budgets.amount_placeholder")} {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Saving..." : "Save"}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </DialogFooter>
           </form>

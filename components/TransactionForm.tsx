@@ -23,6 +23,7 @@ import {
   transactionSchema,
   type TransactionFormValues,
 } from "@/lib/validation/transaction";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Props = {
   open: boolean;
@@ -39,6 +40,7 @@ export default function TransactionForm({
   defaultValues,
   mode,
 }: Props) {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -77,14 +79,14 @@ export default function TransactionForm({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Add Transaction" : "Edit Transaction"}
+            {mode === "create" ? t("transaction.add") : t("transaction.edit")}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="type">Type</Label>
+              <Label htmlFor="type">{t("transaction.type")}</Label>
               <Select
                 value={watchType}
                 onValueChange={(v) => setValue("type", (v ?? "expense") as "income" | "expense")}
@@ -93,17 +95,17 @@ export default function TransactionForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="income">{t("common.income")}</SelectItem>
+                  <SelectItem value="expense">{t("common.expenses")}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.type && (
-                <p className="text-xs text-destructive">{errors.type.message}</p>
+                <p className="text-xs text-destructive">{t(String(errors.type.message))}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="amount">{t("transaction.amount")}</Label>
               <Input
                 id="amount"
                 type="number"
@@ -114,13 +116,13 @@ export default function TransactionForm({
               />
               {errors.amount && (
                 <p className="text-xs text-destructive">
-                  {errors.amount.message}
+                  {t(String(errors.amount.message))}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{t("transaction.currency")}</Label>
               <Select
                 value={watch("currency") || "ETB"}
                 onValueChange={(v) => setValue("currency", v ?? "ETB")}
@@ -138,41 +140,41 @@ export default function TransactionForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">{t("transaction.category")}</Label>
             <Select
               value={watchCategory}
               onValueChange={(v) => setValue("category", v ?? "")}
             >
               <SelectTrigger id="category">
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder={t("transaction.select_category")} />
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat}
+                    {t(`categories.${cat}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {errors.category && (
               <p className="text-xs text-destructive">
-                {errors.category.message}
+                {t(String(errors.category.message))}
               </p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("transaction.description")}</Label>
             <Input id="description" placeholder="e.g. Coffee" {...register("description")} />
             {errors.description && (
               <p className="text-xs text-destructive">
-                {errors.description.message}
+                {t(String(errors.description.message))}
               </p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">{t("transaction.date")}</Label>
             <Input id="date" type="date" {...register("date")} />
           </div>
 
@@ -182,14 +184,14 @@ export default function TransactionForm({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
-                ? "Saving..."
+                ? t("common.saving")
                 : mode === "create"
-                  ? "Create"
-                  : "Save Changes"}
+                  ? t("common.create")
+                  : t("common.save")}
             </Button>
           </div>
         </form>

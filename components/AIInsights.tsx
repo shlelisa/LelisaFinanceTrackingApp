@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useInsights } from "@/hooks/useInsights";
 import { Loader2, Lightbulb, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const severityConfig = {
   warning: { icon: AlertTriangle, class: "border-yellow-500/30 bg-yellow-50 dark:bg-yellow-950/20" },
@@ -13,12 +14,10 @@ const severityConfig = {
 
 const typeLabels: Record<string, string> = {
   spending: "Spending",
-  budget: "Budget",
-  savings: "Savings",
-  trend: "Trend",
 };
 
 export default function AIInsights() {
+  const { t } = useTranslation();
   const { data, isLoading } = useInsights();
   const insights = data?.insights ?? [];
 
@@ -26,7 +25,7 @@ export default function AIInsights() {
     <Card>
       <CardHeader className="flex flex-row items-center gap-2">
         <Lightbulb className="size-5 text-yellow-500" />
-        <CardTitle className="text-lg">AI Insights</CardTitle>
+        <CardTitle className="text-lg">{t("ai.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -35,14 +34,14 @@ export default function AIInsights() {
           </div>
         ) : insights.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            Not enough data to generate insights yet. Keep tracking your finances!
+            {t("ai.empty")}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
             {insights.map((insight, i) => {
               const cfg = severityConfig[insight.severity];
               const Icon = cfg.icon;
-              const typeLabel = typeLabels[insight.type] || insight.type;
+              const typeLabel = t(`ai.type_${insight.type}`);
 
               return (
                 <div

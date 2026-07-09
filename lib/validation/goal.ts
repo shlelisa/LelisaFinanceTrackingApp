@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const goalFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "validation.goal_name_required"),
   targetAmount: z.coerce
-    .number({ message: "Please enter a target amount." })
-    .positive({ message: "Target must be greater than 0." }),
+    .number({ message: "validation.goal_target_required" })
+    .positive({ message: "validation.goal_target_positive" }),
   currentAmount: z.coerce
-    .number({ message: "Please enter current savings." })
-    .min(0, "Amount cannot be negative.")
+    .number({ message: "validation.goal_current_required" })
+    .min(0, "validation.goal_current_negative")
     .optional()
     .default(0),
   deadline: z.string().optional(),

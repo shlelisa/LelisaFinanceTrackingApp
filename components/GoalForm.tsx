@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { goalFormSchema, GoalFormValues } from "@/lib/validation/goal";
 import { CATEGORIES } from "@/lib/constants";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface GoalFormProps {
   open: boolean;
@@ -43,6 +44,7 @@ const GoalForm = ({
   defaultValues,
   mode,
 }: GoalFormProps) => {
+  const { t } = useTranslation();
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema) as any,
     defaultValues: { name: "", targetAmount: 0, currentAmount: 0, deadline: "", category: "", ...defaultValues },
@@ -63,7 +65,7 @@ const GoalForm = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Create" : "Edit"} Savings Goal
+            {mode === "create" ? t("common.create") : t("goals.edit")} Savings Goal
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -71,85 +73,85 @@ const GoalForm = ({
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Goal Name</FormLabel>
+                  <FormLabel>{t("goals.name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Buy a Laptop" {...field} />
+                    <Input placeholder={t("goals.name_placeholder")} {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="targetAmount"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Target Amount</FormLabel>
+                  <FormLabel>{t("goals.target_amount")}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="50000" {...field} />
+                    <Input type="number" placeholder={t("goals.target_placeholder")} {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="currentAmount"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Current Savings</FormLabel>
+                  <FormLabel>{t("goals.current_savings")}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input type="number" placeholder={t("goals.current_placeholder")} {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="deadline"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Target Date (optional)</FormLabel>
+                  <FormLabel>{t("goals.target_date")}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="category"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Category (optional)</FormLabel>
+                  <FormLabel>{t("goals.category_optional")}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder={t("goals.select_category")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
                         <SelectItem key={cat} value={cat}>
-                          {cat}
+                          {t(`categories.${cat}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                 </FormItem>
               )}
             />
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Saving..." : "Save"}
+                {form.formState.isSubmitting ? t("common.saving") : t("common.save")}
               </Button>
             </DialogFooter>
           </form>

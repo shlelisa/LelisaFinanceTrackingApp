@@ -14,8 +14,10 @@ import GoalCard from "@/components/GoalCard";
 import GoalForm from "@/components/GoalForm";
 import type { Goal } from "@/lib/types/goal";
 import type { GoalFormValues } from "@/lib/validation/goal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function GoalsPage() {
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
 
@@ -61,14 +63,14 @@ export default function GoalsPage() {
         </div>
 
         {isLoading ? (
-          <p>Loading goals...</p>
+          <p>{t("goals.loading")}</p>
         ) : goals.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-20 text-muted-foreground">
             <Target className="size-12" />
-            <p className="text-lg">No savings goals yet</p>
-            <p>Create a goal to start tracking your savings</p>
+            <p className="text-lg">{t("goals.no_goals")}</p>
+            <p>{t("goals.no_goals_subtext")}</p>
             <Button onClick={() => setFormOpen(true)}>
-              <Plus className="mr-1 size-4" /> Create Your First Goal
+              <Plus className="mr-1 size-4" /> {t("goals.create_first")}
             </Button>
           </div>
         ) : (
