@@ -200,16 +200,16 @@ export default function TransactionsPage() {
         </div>
 
         {/* Server-side filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">{t("common.type")}</Label>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-muted/30 p-3 rounded-xl border">
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[120px]">
+            <Label className="text-xs font-medium text-muted-foreground">{t("common.type")}</Label>
             <Select
               value={typeFilter}
               onValueChange={(v) =>
                 setTypeFilter((v ?? "all") as "all" | "income" | "expense")
               }
             >
-              <SelectTrigger className="h-8 w-[110px] text-xs">
+              <SelectTrigger className="h-8 w-full sm:w-[110px] text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -220,13 +220,13 @@ export default function TransactionsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">{t("common.category")}</Label>
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[140px]">
+            <Label className="text-xs font-medium text-muted-foreground">{t("common.category")}</Label>
             <Select
               value={categoryFilter}
               onValueChange={(v) => setCategoryFilter(v ?? "all")}
             >
-              <SelectTrigger className="h-8 w-[130px] text-xs">
+              <SelectTrigger className="h-8 w-full sm:w-[130px] text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -240,25 +240,27 @@ export default function TransactionsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Label className="text-xs text-muted-foreground">{t("common.date")}</Label>
-            <Input
-              type="date"
-              value={dateRange.start}
-              onChange={(e) =>
-                setDateRange((prev) => ({ ...prev, start: e.target.value }))
-              }
-              className="h-8 w-[140px] text-xs"
-            />
-            <span className="text-xs text-muted-foreground">—</span>
-            <Input
-              type="date"
-              value={dateRange.end}
-              onChange={(e) =>
-                setDateRange((prev) => ({ ...prev, end: e.target.value }))
-              }
-              className="h-8 w-[140px] text-xs"
-            />
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Label className="text-xs font-medium text-muted-foreground">{t("common.date")}</Label>
+            <div className="flex items-center gap-1.5 flex-1 sm:flex-initial">
+              <Input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, start: e.target.value }))
+                }
+                className="h-8 w-full sm:w-[130px] text-xs"
+              />
+              <span className="text-xs text-muted-foreground">—</span>
+              <Input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, end: e.target.value }))
+                }
+                className="h-8 w-full sm:w-[130px] text-xs"
+              />
+            </div>
           </div>
         </div>
 

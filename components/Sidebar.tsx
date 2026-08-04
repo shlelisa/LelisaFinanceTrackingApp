@@ -13,7 +13,6 @@ import {
   User,
   LogOut,
   Menu,
-  PiggyBank,
   Trophy,
   RefreshCw,
   Bell,
@@ -45,7 +44,14 @@ export default function Sidebar() {
     const interval = setInterval(() => {
       setUnreadCount(getNotifications().filter((n) => !n.read).length);
     }, 5000);
-    return () => clearInterval(interval);
+
+    const handleToggle = () => setOpen((prev) => !prev);
+    window.addEventListener("toggle-mobile-sidebar", handleToggle);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("toggle-mobile-sidebar", handleToggle);
+    };
   }, []);
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
@@ -57,28 +63,21 @@ export default function Sidebar() {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Mobile hamburger */}
-      <button
-        className="fixed left-4 top-3 z-50 flex size-9 items-center justify-center rounded-lg border bg-background text-muted-foreground md:hidden"
-        onClick={() => setOpen(!open)}
-      >
-        <Menu className="size-5" />
-      </button>
-
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r bg-card transition-transform md:static md:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r bg-card transition-transform md:static md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center gap-2 border-b px-5">
-          <PiggyBank className="size-6 text-primary" />
+        <div className="flex h-14 items-center gap-2.5 border-b px-5">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-light font-black text-white text-sm shadow-sm">
+            L
+          </div>
           <span
             className="cursor-pointer text-lg font-bold text-primary"
             onClick={() => {
@@ -101,11 +100,10 @@ export default function Sidebar() {
                   router.push(link.href);
                   setOpen(false);
                 }}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  active
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${active
                     ? "bg-primary text-primary-foreground font-medium shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 <link.icon className="size-4" />
                 <span className="flex-1 text-left">{t(link.key)}</span>

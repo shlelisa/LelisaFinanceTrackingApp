@@ -1,4 +1,4 @@
-import api from "../axios";
+import { computeInsights } from "../storage/financeLogic";
 
 export interface Insight {
   type: "spending" | "budget" | "savings" | "trend";
@@ -6,5 +6,6 @@ export interface Insight {
   severity: "info" | "warning" | "success";
 }
 
-export const fetchInsights = (): Promise<{ insights: Insight[] }> =>
-  api.get("/insights").then((r) => r.data);
+export const fetchInsights = async (): Promise<{ insights: Insight[] }> => {
+  return computeInsights();
+};

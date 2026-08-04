@@ -1,18 +1,32 @@
 import type { Goal } from "@/lib/types/goal";
 import type { CreateGoalInput, UpdateGoalInput } from "@/lib/validation/goal";
-import api from "../axios";
+import {
+  getStoredGoals,
+  saveStoredGoal,
+  updateStoredGoal,
+  deleteStoredGoal,
+} from "../storage/localStorage";
 
-export const fetchGoals = (): Promise<Goal[]> =>
-  api.get("/goals").then((r) => r.data);
+export const fetchGoals = async (): Promise<Goal[]> => {
+  return getStoredGoals();
+};
 
-export const fetchGoal = (id: string): Promise<Goal> =>
-  api.get(`/goals/${id}`).then((r) => r.data);
+export const fetchGoal = async (id: string): Promise<Goal> => {
+  const goals = getStoredGoals();
+  const found = goals.find((g) => g._id === id);
+  if (!found) throw new Error("Goal not found");
+  return found;
+};
 
-export const createGoal = (data: CreateGoalInput): Promise<Goal> =>
-  api.post("/goals", data).then((r) => r.data);
+export const createGoal = async (data: CreateGoalInput): Promise<Goal> => {
+  return saveStoredGoal(data);
+};
 
-export const updateGoal = (id: string, data: UpdateGoalInput): Promise<Goal> =>
-  api.put(`/goals/${id}`, data).then((r) => r.data);
+export const updateGoal = async (id: string, data: UpdateGoalInput): Promise<Goal> => {
+  return updateStoredGoal(id, data);
+};
 
-export const deleteGoal = (id: string): Promise<{ message: string }> =>
-  api.delete(`/goals/${id}`).then((r) => r.data);
+export const deleteGoal = async (id: string): Promise<{ message: string }> => {
+  deleteStoredGoal(id);
+  return { message: "Goal deleted successfully" };
+};

@@ -1,12 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRegister } from "@/hooks/useRegister";
@@ -18,16 +13,10 @@ import {
   type ValidationErrors,
 } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import React, { useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-
-const fields: { name: keyof RegisterForm; labelKey: string; type: string }[] = [
-  { name: "fullName", labelKey: "auth.full_name", type: "text" },
-  { name: "email", labelKey: "auth.email", type: "email" },
-  { name: "phone", labelKey: "auth.phone", type: "tel" },
-  { name: "password", labelKey: "auth.password", type: "password" },
-  { name: "confirmPassword", labelKey: "auth.confirm_password", type: "password" },
-];
+import { User, Mail, Phone, Lock, Eye, EyeOff, UserPlus, ArrowRight } from "lucide-react";
 
 const initialForm: RegisterForm = {
   fullName: "",
@@ -40,6 +29,8 @@ const initialForm: RegisterForm = {
 const RegisterPage = () => {
   const [form, setForm] = useState<RegisterForm>(initialForm);
   const [errors, setErrors] = useState<ValidationErrors<RegisterForm>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useAuth();
   const router = useRouter();
@@ -65,55 +56,200 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-primary-lighter">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-primary">{t("auth.register")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {fields.map((field) => (
-              <div key={field.name} className="flex flex-col gap-2">
-                <Label htmlFor={field.name}>{t(field.labelKey)}</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type={field.type}
-                  placeholder={t(field.labelKey)}
-                  value={form[field.name]}
-                  onChange={handleChange}
-                  required
-                />
-                {errors[field.name] && (
-                  <p className="text-xs text-error">{errors[field.name]}</p>
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-background via-muted/40 to-background p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-md space-y-6">
+        
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center space-y-2">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-light font-black text-white text-2xl shadow-lg shadow-primary/20">
+            L
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            {t("auth.register")}
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Create an offline personal finance account to track budgets, goals & expenses.
+          </p>
+        </div>
+
+        {/* Register Card */}
+        <Card className="border shadow-lg backdrop-blur-md bg-card/90 rounded-2xl">
+          <CardContent className="p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              
+              {/* Full Name */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="fullName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("auth.full_name")}
+                </Label>
+                <div className="relative flex items-center">
+                  <User className="absolute left-3 size-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    placeholder="Lelisa Abebe"
+                    value={form.fullName}
+                    onChange={handleChange}
+                    className="pl-9 h-10 text-sm rounded-xl"
+                    required
+                  />
+                </div>
+                {errors.fullName && (
+                  <p className="text-xs text-error font-medium">{errors.fullName}</p>
                 )}
               </div>
-            ))}
 
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? t("common.submitting") : t("auth.register")}
-            </Button>
+              {/* Email */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("auth.email")}
+                </Label>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-3 size-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="pl-9 h-10 text-sm rounded-xl"
+                    required
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-xs text-error font-medium">{errors.email}</p>
+                )}
+              </div>
 
-            {mutation.isError && (
-              <p className="text-sm text-error">
-                {mutation.error instanceof Error
-                  ? mutation.error.message
-                  : t("auth.something_wrong")}
-              </p>
-            )}
+              {/* Phone */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("auth.phone")}
+                </Label>
+                <div className="relative flex items-center">
+                  <Phone className="absolute left-3 size-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="0911000000"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="pl-9 h-10 text-sm rounded-xl"
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-xs text-error font-medium">{errors.phone}</p>
+                )}
+              </div>
 
-            {mutation.isSuccess && (
-              <p className="text-sm text-success">{t("auth.register_success")}</p>
-            )}
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            {t("auth.has_account")}{" "}
-            <a href="/login" className="font-medium text-primary hover:underline">
-              {t("auth.login")}
-            </a>
-          </p>
-        </CardContent>
-      </Card>
+              {/* Password */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("auth.password")}
+                </Label>
+                <div className="relative flex items-center">
+                  <Lock className="absolute left-3 size-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={form.password}
+                    onChange={handleChange}
+                    className="pl-9 pr-10 h-10 text-sm rounded-xl"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-error font-medium">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("auth.confirm_password")}
+                </Label>
+                <div className="relative flex items-center">
+                  <Lock className="absolute left-3 size-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    className="pl-9 pr-10 h-10 text-sm rounded-xl"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-error font-medium">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="mt-2 h-11 w-full rounded-xl text-sm font-semibold shadow-md gap-2"
+              >
+                {mutation.isPending ? (
+                  t("common.submitting")
+                ) : (
+                  <>
+                    <UserPlus className="size-4" />
+                    {t("auth.register")}
+                  </>
+                )}
+              </Button>
+
+              {mutation.isError && (
+                <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error">
+                  {mutation.error instanceof Error
+                    ? mutation.error.message
+                    : t("auth.something_wrong")}
+                </div>
+              )}
+
+              {mutation.isSuccess && (
+                <div className="rounded-lg border border-success/30 bg-success/10 p-3 text-xs text-success">
+                  {t("auth.register_success")}
+                </div>
+              )}
+            </form>
+
+            <div className="mt-6 border-t pt-4 text-center text-sm text-muted-foreground">
+              {t("auth.has_account")}{" "}
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+              >
+                {t("auth.login")} <ArrowRight className="size-3" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

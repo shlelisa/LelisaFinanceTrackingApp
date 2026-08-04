@@ -1,0 +1,6 @@
+{
+  "appId": "com.LelisaFinanceTracking.app",
+  "appName": "LelisaFin",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}

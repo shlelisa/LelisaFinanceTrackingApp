@@ -3,6 +3,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import UserDropdown from "./UserDropdown";
+import AdminUserSelector from "./AdminUserSelector";
+import { Menu } from "lucide-react";
 
 export default function TopBar() {
   const { isAuthenticated } = useAuth();
@@ -11,9 +13,45 @@ export default function TopBar() {
 
   if (isAuthPage || !isAuthenticated) return null;
 
+  // Formatting route title for mobile topbar
+  const routeTitleMap: Record<string, string> = {
+    "/dashboard": "Dashboard",
+    "/transactions": "Transactions",
+    "/reports": "Reports",
+    "/budgets": "Budgets",
+    "/goals": "Savings Goals",
+    "/recurring": "Recurring Items",
+    "/calendar": "Calendar",
+    "/notifications": "Notifications",
+    "/profile": "Profile",
+  };
+
+  const title = routeTitleMap[pathname] || "LelisaFin";
+
+  const handleMobileSidebarToggle = () => {
+    window.dispatchEvent(new Event("toggle-mobile-sidebar"));
+  };
+
   return (
-    <div className="flex h-14 items-center justify-end border-b bg-background/80 px-6 backdrop-blur-sm">
-      <UserDropdown />
-    </div>
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-background/80 px-4 sm:px-6 backdrop-blur-md transition-colors">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleMobileSidebarToggle}
+          className="flex size-9 items-center justify-center rounded-lg border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
+          aria-label="Toggle Navigation Sidebar"
+        >
+          <Menu className="size-5" />
+        </button>
+        <span className="text-base font-bold text-foreground md:hidden">{title}</span>
+        <span className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground md:block">
+          {title}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2.5">
+        <AdminUserSelector />
+        <UserDropdown />
+      </div>
+    </header>
   );
 }

@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FinanceApp",
-  description: "Personal Finance Tracking",
+  title: "LelisaFin",
+  description: "Lelisa Finance Tracking App",
 };
 
 export default function RootLayout({
@@ -38,7 +38,7 @@ export default function RootLayout({
           <AuthProvider>
             <div className="flex min-h-screen md:flex-row">
               <Sidebar />
-              <main className="flex flex-1 flex-col pt-14 md:pt-0">
+              <main className="flex flex-1 flex-col min-w-0">
                 <TopBar />
                 <div className="flex-1">{children}</div>
               </main>

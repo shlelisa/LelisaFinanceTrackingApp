@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "FinanceApp"
+    "name": "LelisaFin"
   },
   "nav": {
     "dashboard": "Dashboordii",
@@ -188,11 +188,27 @@
     "tx": "tx",
     "txs": "txs",
     "months": [
-      "Ada", "Gur", "Bit", "Elb", "Cam", "Wax",
-      "Ado", "Hag", "Ful", "Onk", "Sad", "Mud"
+      "Ada",
+      "Gur",
+      "Bit",
+      "Elb",
+      "Cam",
+      "Wax",
+      "Ado",
+      "Hag",
+      "Ful",
+      "Onk",
+      "Sad",
+      "Mud"
     ],
     "weekdays": [
-      "Dil", "Wix", "Qib", "Rob", "Kam", "Jim", "San"
+      "Dil",
+      "Wix",
+      "Qib",
+      "Rob",
+      "Kam",
+      "Jim",
+      "San"
     ]
   },
   "reports": {
@@ -288,7 +304,13 @@
     "excel": "Excel",
     "generated": "Uumame: {date}",
     "sheet_name": "Sheet1",
-    "headers": ["Guyyaa", "Ibsa", "Garee", "Hammi", "Akaakuu"]
+    "headers": [
+      "Guyyaa",
+      "Ibsa",
+      "Garee",
+      "Hammi",
+      "Akaakuu"
+    ]
   },
   "alerts": {
     "budget_exceeded_title": "Bajatni dabare!",

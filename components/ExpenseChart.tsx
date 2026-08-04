@@ -6,19 +6,20 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
+  Legend,
 } from "recharts";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAppCurrency } from "@/hooks/useAppCurrency";
 
-const COLORS = [
-  "#025aa2",
-  "#4a9eff",
-  "#7fc1ff",
-  "#b0d8ff",
-  "#e0f0ff",
-  "#6b7280",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
+const VIBRANT_COLORS = [
+  "#38bdf8", // Sky Blue
+  "#34d399", // Emerald
+  "#fb7185", // Rose
+  "#a78bfa", // Purple
+  "#fbbf24", // Amber
+  "#f472b6", // Pink
+  "#818cf8", // Indigo
+  "#2dd4bf", // Teal
 ];
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 
 export default function ExpenseChart({ data }: Props) {
   const { t } = useTranslation();
+  const { format } = useAppCurrency();
   const chartData = data && data.length > 0 ? data : [];
 
   if (chartData.length === 0) {
@@ -45,17 +47,40 @@ export default function ExpenseChart({ data }: Props) {
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={90}
-            paddingAngle={3}
+            innerRadius={55}
+            outerRadius={85}
+            paddingAngle={4}
             dataKey="value"
             nameKey="name"
+            stroke="none"
           >
             {chartData.map((entry, i) => (
-              <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
+              <Cell
+                key={entry.name}
+                fill={VIBRANT_COLORS[i % VIBRANT_COLORS.length]}
+                className="transition-all duration-300 hover:opacity-80"
+              />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            formatter={(value: number) => [format(value), ""]}
+            contentStyle={{
+              backgroundColor: "rgba(15, 23, 42, 0.9)",
+              borderColor: "rgba(255, 255, 255, 0.15)",
+              borderRadius: "0.5rem",
+              color: "#f8fafc",
+              fontSize: "0.875rem",
+            }}
+            itemStyle={{ color: "#38bdf8" }}
+          />
+          <Legend
+            verticalAlign="bottom"
+            height={36}
+            iconType="circle"
+            formatter={(value) => (
+              <span className="text-xs font-medium text-foreground">{value}</span>
+            )}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
