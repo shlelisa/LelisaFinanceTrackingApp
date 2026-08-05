@@ -11,6 +11,9 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ExpenseChart from "@/components/ExpenseChart";
 import AIInsights from "@/components/AIInsights";
+import FavoritesWidget from "@/components/FavoritesWidget";
+import FinancialHealthCard from "@/components/FinancialHealthCard";
+import SmartStatisticsCard from "@/components/SmartStatisticsCard";
 import Money from "@/components/Money";
 import { useDashboardSummary } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
@@ -108,7 +111,16 @@ export default function DashboardPage() {
           })}
         </div>
 
-        <AIInsights />
+        {/* Favorites Quick Add Shortcut */}
+        <FavoritesWidget />
+
+        {/* AI Insights & Financial Health Score & Smart Statistics */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <AIInsights />
+          <FinancialHealthCard />
+        </div>
+
+        <SmartStatisticsCard />
 
         {/* Expense Breakdown & Recent Activity */}
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">

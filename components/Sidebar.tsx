@@ -17,18 +17,26 @@ import {
   RefreshCw,
   Bell,
   CalendarDays,
+  Wallet,
+  Receipt,
+  HandCoins,
+  Tags,
 } from "lucide-react";
 
 const navItems = [
-  { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { key: "nav.transactions", href: "/transactions", icon: CreditCard },
-  { key: "nav.reports", href: "/reports", icon: BarChart3 },
-  { key: "nav.budgets", href: "/budgets", icon: Target },
-  { key: "nav.goals", href: "/goals", icon: Trophy },
-  { key: "nav.recurring", href: "/recurring", icon: RefreshCw },
-  { key: "nav.calendar", href: "/calendar", icon: CalendarDays },
-  { key: "nav.notifications", href: "/notifications", icon: Bell },
-  { key: "nav.profile", href: "/profile", icon: User },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Accounts", href: "/accounts", icon: Wallet },
+  { label: "Transactions", href: "/transactions", icon: CreditCard },
+  { label: "Bills & Subscriptions", href: "/bills", icon: Receipt },
+  { label: "Debt & Loans", href: "/debt", icon: HandCoins },
+  { label: "Budgets", href: "/budgets", icon: Target },
+  { label: "Savings Goals", href: "/goals", icon: Trophy },
+  { label: "Categories", href: "/categories", icon: Tags },
+  { label: "Reports", href: "/reports", icon: BarChart3 },
+  { label: "Recurring", href: "/recurring", icon: RefreshCw },
+  { label: "Calendar", href: "/calendar", icon: CalendarDays },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Profile & Settings", href: "/profile", icon: User },
 ] as const;
 
 export default function Sidebar() {
@@ -106,7 +114,7 @@ export default function Sidebar() {
                   }`}
               >
                 <link.icon className="size-4" />
-                <span className="flex-1 text-left">{t(link.key)}</span>
+                <span className="flex-1 text-left">{link.label}</span>
                 {link.href === "/notifications" && unreadCount > 0 && (
                   <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {unreadCount > 9 ? "9+" : unreadCount}

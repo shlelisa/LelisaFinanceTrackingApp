@@ -24,6 +24,8 @@ import Money from "@/components/Money";
 import { exportCSV, exportPDF, exportExcel } from "@/lib/export";
 import api from "@/lib/axios";
 import { useTranslation } from "@/hooks/useTranslation";
+import { computeReportRange } from "@/lib/storage/financeLogic";
+import { useEffect } from "react";
 
 const COLORS = [
   "#025aa2", "#4a9eff", "#7fc1ff", "#b0d8ff", "#e0f0ff",
@@ -50,15 +52,17 @@ export default function ReportsPage() {
 
   const { data: categoryData, isLoading: categoriesLoading } = useCategoryBreakdown();
 
+  useEffect(() => {
+    updateScope("this-month");
+  }, []);
+
   const fetchCustomReport = async (startDate: string, endDate: string, groupBy: string) => {
     setLoading(true);
     try {
-      const res = await api.get("/transactions/report/range", {
-        params: { startDate, endDate, groupBy },
-      });
-      setReportData(res.data);
+      const data = computeReportRange(startDate, endDate, groupBy);
+      setReportData(data);
     } catch (err) {
-      console.error("Failed to fetch report:", err);
+      console.error("Failed to generate report:", err);
     } finally {
       setLoading(false);
     }
@@ -142,10 +146,10 @@ export default function ReportsPage() {
   const categoryBreakdown = useMemo(() => {
     const data = reportData?.categoryBreakdown ?? categoryData ?? [];
     if (!data || data.length === 0) return [];
-    return data.map((c: any) => ({
-      name: c.name,
-      value: c.value,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    return data.map((c: any, idx: number) => ({
+      name: c.name || c._id || "Other",
+      value: c.value ?? c.total ?? 0,
+      color: COLORS[idx % COLORS.length],
     }));
   }, [reportData, categoryData]);
 

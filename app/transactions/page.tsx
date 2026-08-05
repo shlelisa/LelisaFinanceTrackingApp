@@ -142,9 +142,9 @@ export default function TransactionsPage() {
         header: t("transaction.actions_header"),
         enableSorting: false,
         enableHiding: false,
-        size: 150,
+        size: 240,
         cell: ({ row }) => (
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
             <Button
               size="sm"
               variant="ghost"
@@ -153,9 +153,27 @@ export default function TransactionsPage() {
                 setEditTx(row.original);
                 setFormOpen(true);
               }}
-              >
-                {t("common.edit")}
-              </Button>
+            >
+              {t("common.edit")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 px-2 text-xs text-primary"
+              onClick={async () => {
+                const tx = row.original;
+                await createTx({
+                  type: tx.type,
+                  amount: tx.amount,
+                  currency: tx.currency,
+                  category: tx.category,
+                  description: `${tx.description} (Copy)`,
+                  date: new Date().toISOString().slice(0, 10),
+                });
+              }}
+            >
+              Duplicate
+            </Button>
             <Button
               size="sm"
               variant="destructive"
@@ -165,9 +183,9 @@ export default function TransactionsPage() {
                   await deleteTx(row.original._id);
                 }
               }}
-              >
-                {t("common.delete")}
-              </Button>
+            >
+              {t("common.delete")}
+            </Button>
           </div>
         ),
       },

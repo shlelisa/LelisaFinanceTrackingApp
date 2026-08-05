@@ -1,18 +1,21 @@
-import api from "../axios";
+import {
+  getStoredExchangeRates,
+  saveStoredExchangeRate,
+  deleteStoredExchangeRate,
+  type ExchangeRateDoc,
+} from "../storage/localStorage";
 
-export interface UserRateDoc {
-  _id: string;
-  userId: string;
-  from: string;
-  to: string;
-  rate: number;
-}
+export type UserRateDoc = ExchangeRateDoc;
 
-export const fetchUserRates = (): Promise<UserRateDoc[]> =>
-  api.get("/exchange-rates").then((r) => r.data);
+export const fetchUserRates = async (): Promise<UserRateDoc[]> => {
+  return getStoredExchangeRates();
+};
 
-export const upsertUserRate = (from: string, to: string, rate: number) =>
-  api.post("/exchange-rates", { from, to, rate }).then((r) => r.data);
+export const upsertUserRate = async (from: string, to: string, rate: number): Promise<UserRateDoc> => {
+  return saveStoredExchangeRate(from, to, rate);
+};
 
-export const deleteUserRate = (id: string) =>
-  api.delete(`/exchange-rates/${id}`).then((r) => r.data);
+export const deleteUserRate = async (id: string): Promise<{ message: string }> => {
+  deleteStoredExchangeRate(id);
+  return { message: "Rate deleted" };
+};

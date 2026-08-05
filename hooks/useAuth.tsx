@@ -48,6 +48,8 @@ function reducer(state: AuthState, action: Action): AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const CURRENT_APP_VERSION = "1.0.1";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     user: null,
@@ -59,6 +61,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const lastVersion = localStorage.getItem("app_build_version");
+      if (lastVersion !== CURRENT_APP_VERSION) {
+        localStorage.setItem("app_build_version", CURRENT_APP_VERSION);
+        clearAuth();
+        dispatch({ type: "LOGOUT" });
+        dispatch({ type: "LOADED" });
+        return;
+      }
+    }
+
     if (isAuthenticated()) {
       dispatch({ type: "INIT", token: getToken(), user: getUser() as User | null });
     }

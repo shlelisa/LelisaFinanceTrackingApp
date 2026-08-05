@@ -20,7 +20,7 @@ export const getNotifications = (): Notification[] => {
 export const addNotification = (notif: Omit<Notification, "id" | "timestamp" | "read">) => {
   const notification: Notification = {
     ...notif,
-    id: crypto.randomUUID(),
+    id: "notif_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
     timestamp: new Date().toISOString(),
     read: false,
   };

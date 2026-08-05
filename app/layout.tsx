@@ -6,6 +6,7 @@ import Providers from "./providers";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "sonner";
 import BudgetAlertWatcher from "@/components/BudgetAlertWatcher";
+import AIChatbotWidget from "@/components/AIChatbotWidget";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default function RootLayout({
                 <div className="flex-1">{children}</div>
               </main>
             </div>
+            <AIChatbotWidget />
           </AuthProvider>
           <Toaster richColors position="top-right" />
           <BudgetAlertWatcher />

@@ -1,32 +1,47 @@
+export type TransactionType = "income" | "expense" | "transfer";
+
 export type Transaction = {
   _id: string;
   userId: string;
-  type: "income" | "expense";
+  type: TransactionType;
   amount: number;
   currency: string;
   originalAmount: number;
   category: string;
   description: string;
   date: string;
+  time?: string;
+  accountId?: string;
+  toAccountId?: string;
+  paymentMethod?: string;
+  receiptUrl?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 };
 
 export type CreateTransactionInput = {
-  type: "income" | "expense";
+  type: TransactionType;
   amount: number;
   currency?: string;
   category: string;
   description: string;
   date?: string;
+  time?: string;
+  accountId?: string;
+  toAccountId?: string;
+  paymentMethod?: string;
+  receiptUrl?: string;
+  tags?: string[];
 };
 
 export type UpdateTransactionInput = Partial<CreateTransactionInput>;
 
 export type TransactionFilters = {
   search?: string;
-  type?: "income" | "expense";
+  type?: TransactionType;
   category?: string;
+  accountId?: string;
   startDate?: string;
   endDate?: string;
   sortBy?: string;
@@ -45,5 +60,14 @@ export type MonthlyReport = {
   report: { month: string; income: number; expense: number }[];
   categoryBreakdown: { _id: string; total: number }[];
 };
+
+export interface FavoriteExpense {
+  _id: string;
+  name: string;
+  amount: number;
+  category: string;
+  icon?: string;
+  color?: string;
+}
 
 export { CATEGORIES } from "@/lib/constants";

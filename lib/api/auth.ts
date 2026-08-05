@@ -37,9 +37,15 @@ export const updatePreferencesApi = async (data: { currency?: string; language?:
   const newPrefs: UserPreferences = { ...currentPrefs, ...data };
 
   if (typeof window !== "undefined") {
-    if (data.currency) localStorage.setItem("app_currency", data.currency);
+    if (data.currency) {
+      localStorage.setItem("preferred_currency", data.currency);
+      localStorage.setItem("app_currency", data.currency);
+    }
     if (data.language) localStorage.setItem("app_language", data.language);
-    if (data.theme) localStorage.setItem("app_theme", data.theme);
+    if (data.theme) {
+      localStorage.setItem("pft_theme", data.theme);
+      localStorage.setItem("app_theme", data.theme);
+    }
   }
 
   return saveStoredUser({ preferences: newPrefs });

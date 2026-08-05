@@ -1,4 +1,4 @@
-import api from "../axios";
+import { getEffectiveExchangeRates } from "../storage/localStorage";
 
 export interface RatesResponse {
   base: string;
@@ -6,5 +6,6 @@ export interface RatesResponse {
   etbRates: Record<string, number>;
 }
 
-export const fetchRates = (): Promise<RatesResponse> =>
-  api.get("/rates").then((r) => r.data);
+export const fetchRates = async (): Promise<RatesResponse> => {
+  return getEffectiveExchangeRates();
+};

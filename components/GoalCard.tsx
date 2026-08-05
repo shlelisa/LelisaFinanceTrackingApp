@@ -55,6 +55,14 @@ const GoalCard = ({ goal, onEdit, onDelete }: GoalCardProps) => {
             </span>
           )}
         </div>
+
+        {/* AI Goal Forecast */}
+        {!isAchieved && (
+          <div className="rounded-lg bg-primary/5 p-2 text-[11px] font-semibold text-primary">
+            ⚡ AI Forecast: Goal reached in ~{Math.max(1, Math.ceil((goal.targetAmount - goal.currentAmount) / 300))} months at current savings rate
+          </div>
+        )}
+
         {goal.category && (
           <span className="text-xs text-muted-foreground">{t("goals.category_label")} {goal.category}</span>
         )}

@@ -14,9 +14,12 @@ import {
 } from "@/lib/validation/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Fingerprint, KeyRound } from "lucide-react";
+import { isBiometricAvailable, authenticateWithBiometrics } from "@/lib/biometrics";
+import { getStoredUser, getStoredPin } from "@/lib/storage/localStorage";
+import PinLockModal from "@/components/PinLockScreen";
 
 const initialForm: LoginInput = { email: "", password: "" };
 
@@ -24,11 +27,21 @@ const LoginPage = () => {
   const [form, setForm] = useState<LoginInput>(initialForm);
   const [errors, setErrors] = useState<ValidationErrors<LoginInput>>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [biometricError, setBiometricError] = useState("");
+  const [pinSupported, setPinSupported] = useState(false);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
 
   const { login } = useAuth();
   const router = useRouter();
   const mutation = useLogin();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    isBiometricAvailable().then((supported) => setBiometricSupported(supported));
+    setPinSupported(!!getStoredPin());
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -49,6 +62,30 @@ const LoginPage = () => {
         router.push("/dashboard");
       },
     });
+  };
+
+  const handleBiometricLogin = async () => {
+    setBiometricLoading(true);
+    setBiometricError("");
+    try {
+      const verified = await authenticateWithBiometrics();
+      if (verified) {
+        const user = getStoredUser();
+        login("biometric_token_" + Date.now(), user);
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Biometric scan error:", err);
+      setBiometricError(err?.message || "Biometric scan failed.");
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
+  const handlePinLoginSuccess = () => {
+    const user = getStoredUser();
+    login("pin_token_" + Date.now(), user);
+    router.push("/dashboard");
   };
 
   return (
@@ -145,6 +182,38 @@ const LoginPage = () => {
                 )}
               </Button>
 
+              {/* 4-Digit Security PIN Login Button */}
+              {pinSupported && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPinModalOpen(true)}
+                  className="h-11 w-full rounded-xl border-emerald-500/30 text-xs font-semibold gap-2 text-emerald-600 hover:bg-emerald-500/10"
+                >
+                  <KeyRound className="size-4 text-emerald-600" />
+                  Unlock with 4-Digit Security PIN
+                </Button>
+              )}
+
+              {/* Device Biometrics Login Button */}
+              {biometricSupported && (
+                <div className="flex flex-col gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBiometricLogin}
+                    disabled={biometricLoading}
+                    className="h-11 w-full rounded-xl border-primary/30 text-xs font-semibold gap-2 hover:bg-primary/5 text-primary"
+                  >
+                    <Fingerprint className="size-5 text-primary" />
+                    {biometricLoading ? "Touch Fingerprint Sensor..." : "Login with Fingerprint / Biometrics"}
+                  </Button>
+                  {biometricError && (
+                    <p className="text-xs text-error font-medium text-center">{biometricError}</p>
+                  )}
+                </div>
+              )}
+
               {mutation.isError && (
                 <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error">
                   {mutation.error instanceof Error
@@ -172,6 +241,13 @@ const LoginPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <PinLockModal
+        open={pinModalOpen}
+        onClose={() => setPinModalOpen(false)}
+        mode="verify"
+        onSuccess={handlePinLoginSuccess}
+      />
     </div>
   );
 };

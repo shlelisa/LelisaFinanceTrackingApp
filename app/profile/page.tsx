@@ -19,9 +19,12 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { exportFullBackupJSON, importFullBackupJSON, getStoredPin } from "@/lib/storage/localStorage";
+import PinLockModal from "@/components/PinLockScreen";
 import { Save, Loader2, RefreshCw, Pencil, Trash2, Check, X } from "lucide-react";
+import { toast } from "sonner";
 
-const DARK_MODE_KEY = "dark_mode";
+const DARK_MODE_KEY = "pft_theme";
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -38,12 +41,12 @@ export default function ProfilePage() {
   const [currency, setCurrency] = useState("ETB");
   const [language, setLanguage] = useState("English");
   const [changePwdOpen, setChangePwdOpen] = useState(false);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(DARK_MODE_KEY);
-    const isDark = stored === "true" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const isDark = stored === "dark" || stored === "true";
     setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function ProfilePage() {
         const isDarkPref = profile.preferences.theme === "dark";
         setDark(isDarkPref);
         document.documentElement.classList.toggle("dark", isDarkPref);
-        localStorage.setItem(DARK_MODE_KEY, String(isDarkPref));
+        localStorage.setItem(DARK_MODE_KEY, isDarkPref ? "dark" : "light");
       }
     }
   }, [profile]);
@@ -64,7 +67,7 @@ export default function ProfilePage() {
   const toggleDark = (checked: boolean) => {
     setDark(checked);
     document.documentElement.classList.toggle("dark", checked);
-    localStorage.setItem(DARK_MODE_KEY, String(checked));
+    localStorage.setItem(DARK_MODE_KEY, checked ? "dark" : "light");
     updatePrefsMutation.mutate({ theme: checked ? "dark" : "light" });
   };
 
@@ -75,12 +78,16 @@ export default function ProfilePage() {
 
   const handleCurrencyChange = (value: string) => {
     setCurrency(value);
-    updatePrefsMutation.mutate({ currency: value });
+    updatePrefsMutation.mutate({ currency: value }, {
+      onSuccess: () => toast.success(`Base currency updated to ${value}`),
+    });
   };
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
-    updatePrefsMutation.mutate({ language: value });
+    updatePrefsMutation.mutate({ language: value }, {
+      onSuccess: () => toast.success(`Language updated to ${value}`),
+    });
   };
 
   const initial = (profile?.fullName ?? user?.fullName ?? "U").charAt(0).toUpperCase();
@@ -200,6 +207,85 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {/* Local Backup & Data Import / Export */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Local Data Backup & Security</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Export App Data</h4>
+                <p className="text-xs text-muted-foreground">Download a complete JSON backup of transactions, budgets, goals, and accounts.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const json = exportFullBackupJSON();
+                  const blob = new Blob([json], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `lelisafin_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success("JSON Backup downloaded successfully!");
+                }}
+              >
+                Export JSON Backup
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Import Backup Data</h4>
+                <p className="text-xs text-muted-foreground">Restore your app state from a previously exported JSON backup file.</p>
+              </div>
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          importFullBackupJSON(event.target?.result as string);
+                          toast.success("Data successfully imported! Reloading...");
+                          setTimeout(() => window.location.reload(), 1000);
+                        } catch (err: any) {
+                          toast.error(err.message || "Failed to import backup");
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+                <span className="inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted">
+                  Import JSON File
+                </span>
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">4-Digit Security PIN</h4>
+                <p className="text-xs text-muted-foreground">Require a PIN code when launching or accessing sensitive features.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPinModalOpen(true)}
+              >
+                {getStoredPin() ? "Change PIN Code" : "Set Up 4-Digit PIN"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex gap-3">
           <Button
             variant="destructive"
@@ -215,6 +301,7 @@ export default function ProfilePage() {
         </div>
 
         <ChangePasswordDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
+        <PinLockModal open={pinModalOpen} onClose={() => setPinModalOpen(false)} mode="setup" />
       </div>
     </ProtectedRoute>
   );
@@ -253,6 +340,7 @@ function EditableRates() {
     const v = parseFloat(editValue);
     if (isNaN(v) || v <= 0) return;
     await upsertMutation.mutateAsync({ from: code, to: "ETB", rate: v });
+    toast.success(`Exchange rate for ${code} updated to ${v} ETB`);
     setEditing(null);
   };
 
@@ -262,6 +350,7 @@ function EditableRates() {
     const u = userRate(code);
     if (!u) return;
     await deleteMutation.mutateAsync(u._id);
+    toast.success(`Custom exchange rate for ${code} removed`);
   };
 
   if (liveLoading || userLoading) {

@@ -1,10 +1,14 @@
-import type { Transaction, CreateTransactionInput, UpdateTransactionInput, TransactionFilters } from "../types/transaction";
+import type { Transaction, CreateTransactionInput, UpdateTransactionInput, TransactionFilters, FavoriteExpense } from "../types/transaction";
 import type { Budget } from "../types/budget";
 import type { CreateBudgetInput, UpdateBudgetInput } from "../validation/budget";
 import type { Goal } from "../types/goal";
 import type { CreateGoalInput, UpdateGoalInput } from "../validation/goal";
 import type { RecurringTransaction } from "../types/recurring";
 import type { CreateRecurringInput, UpdateRecurringInput } from "../validation/recurring";
+import type { Account, CreateAccountInput, UpdateAccountInput } from "../types/account";
+import type { Bill, CreateBillInput, UpdateBillInput } from "../types/bill";
+import type { Debt, CreateDebtInput, UpdateDebtInput } from "../types/debt";
+import type { CustomCategory, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
 import type { User, AuthResponse } from "../types/api";
 
 const KEYS = {
@@ -12,6 +16,13 @@ const KEYS = {
   BUDGETS: "pft_offline_budgets",
   GOALS: "pft_offline_goals",
   RECURRING: "pft_offline_recurring",
+  ACCOUNTS: "pft_offline_accounts",
+  BILLS: "pft_offline_bills",
+  DEBTS: "pft_offline_debts",
+  CATEGORIES: "pft_offline_categories",
+  FAVORITES: "pft_offline_favorites",
+  EXCHANGE_RATES: "pft_offline_exchange_rates",
+  PIN: "pft_security_pin",
   USER: "auth_user",
   TOKEN: "auth_token",
   REGISTERED_USERS: "pft_registered_users",
@@ -54,16 +65,24 @@ function setItem<T>(key: string, value: T): void {
 function initializeSeedData() {
   if (typeof window === "undefined") return;
 
-  if (!localStorage.getItem(KEYS.USER)) {
-    const defaultUser: User = {
-      id: "local_user_1",
-      fullName: "Lelisa Finance Tracking",
-      email: "lelisa@local.app",
-      phone: "0969642103",
-      role: "user",
-    };
-    setItem(KEYS.USER, defaultUser);
-    setItem(KEYS.TOKEN, "offline_token_local");
+  if (!localStorage.getItem(KEYS.REGISTERED_USERS)) {
+    const defaultUsers: User[] = [
+      {
+        id: "local_user_1",
+        fullName: "Lelisa Finance Tracking",
+        email: "lelisa@local.app",
+        phone: "0969642103",
+        role: "user",
+      },
+      {
+        id: "local_user_2",
+        fullName: "Local Standard User",
+        email: "user@local.app",
+        phone: "0911223344",
+        role: "user",
+      },
+    ];
+    setItem(KEYS.REGISTERED_USERS, defaultUsers);
   }
 
   if (!localStorage.getItem(KEYS.TRANSACTIONS)) {
@@ -240,6 +259,156 @@ function initializeSeedData() {
     ];
     setItem(KEYS.RECURRING, initialRecurring);
   }
+
+  if (!localStorage.getItem(KEYS.ACCOUNTS)) {
+    const nowISO = new Date().toISOString();
+    const initialAccounts: Account[] = [
+      {
+        _id: "acc_1",
+        userId: "local_user_1",
+        name: "Main Cash Wallet",
+        type: "cash",
+        balance: 450,
+        currency: "USD",
+        color: "#10b981",
+        icon: "Wallet",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+      {
+        _id: "acc_2",
+        userId: "local_user_1",
+        name: "Bank Checking Account",
+        type: "bank",
+        balance: 3200,
+        currency: "USD",
+        color: "#3b82f6",
+        icon: "Building2",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+      {
+        _id: "acc_3",
+        userId: "local_user_1",
+        name: "Rewards Credit Card",
+        type: "credit_card",
+        balance: -250,
+        currency: "USD",
+        color: "#ef4444",
+        icon: "CreditCard",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+      {
+        _id: "acc_4",
+        userId: "local_user_1",
+        name: "Mobile Money",
+        type: "mobile_money",
+        balance: 890,
+        currency: "ETB",
+        color: "#8b5cf6",
+        icon: "Smartphone",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+    ];
+    setItem(KEYS.ACCOUNTS, initialAccounts);
+  }
+
+  if (!localStorage.getItem(KEYS.BILLS)) {
+    const nowISO = new Date().toISOString();
+    const initialBills: Bill[] = [
+      {
+        _id: generateId(),
+        userId: "local_user_1",
+        name: "Electricity Bill",
+        category: "Utilities",
+        amount: 80,
+        currency: "USD",
+        dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 25).toISOString().split("T")[0],
+        repeatMonthly: true,
+        status: "unpaid",
+        reminderEnabled: true,
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+      {
+        _id: generateId(),
+        userId: "local_user_1",
+        name: "High-Speed Internet",
+        category: "Utilities",
+        amount: 55,
+        currency: "USD",
+        dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 18).toISOString().split("T")[0],
+        repeatMonthly: true,
+        status: "paid",
+        reminderEnabled: true,
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+    ];
+    setItem(KEYS.BILLS, initialBills);
+  }
+
+  if (!localStorage.getItem(KEYS.DEBTS)) {
+    const nowISO = new Date().toISOString();
+    const initialDebts: Debt[] = [
+      {
+        _id: generateId(),
+        userId: "local_user_1",
+        type: "lent",
+        person: "John Doe",
+        totalAmount: 300,
+        remainingBalance: 150,
+        currency: "USD",
+        dueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split("T")[0],
+        notes: "Lent money for emergency laptop repair",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+      {
+        _id: generateId(),
+        userId: "local_user_1",
+        type: "loan",
+        person: "National Bank Loan",
+        totalAmount: 2000,
+        remainingBalance: 1200,
+        currency: "USD",
+        interestRate: 4.5,
+        dueDate: new Date(new Date().getFullYear() + 1, 0, 15).toISOString().split("T")[0],
+        notes: "Personal loan for home renovation",
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      },
+    ];
+    setItem(KEYS.DEBTS, initialDebts);
+  }
+
+  if (!localStorage.getItem(KEYS.CATEGORIES)) {
+    const nowISO = new Date().toISOString();
+    const initialCategories: CustomCategory[] = [
+      { _id: "cat_1", userId: "local_user_1", name: "Salary", type: "income", color: "#10b981", icon: "Briefcase", isDefault: true, createdAt: nowISO },
+      { _id: "cat_2", userId: "local_user_1", name: "Business", type: "income", color: "#06b6d4", icon: "Building", isDefault: true, createdAt: nowISO },
+      { _id: "cat_3", userId: "local_user_1", name: "Gift", type: "income", color: "#ec4899", icon: "Gift", isDefault: true, createdAt: nowISO },
+      { _id: "cat_4", userId: "local_user_1", name: "Food & Dining", type: "expense", color: "#f59e0b", icon: "Utensils", isDefault: true, createdAt: nowISO },
+      { _id: "cat_5", userId: "local_user_1", name: "Transportation", type: "expense", color: "#3b82f6", icon: "Car", isDefault: true, createdAt: nowISO },
+      { _id: "cat_6", userId: "local_user_1", name: "Shopping", type: "expense", color: "#a855f7", icon: "ShoppingBag", isDefault: true, createdAt: nowISO },
+      { _id: "cat_7", userId: "local_user_1", name: "Utilities", type: "expense", color: "#ef4444", icon: "Zap", isDefault: true, createdAt: nowISO },
+      { _id: "cat_8", userId: "local_user_1", name: "Rent", type: "expense", color: "#64748b", icon: "Home", isDefault: true, createdAt: nowISO },
+      { _id: "cat_9", userId: "local_user_1", name: "Health", type: "expense", color: "#14b8a6", icon: "Activity", isDefault: true, createdAt: nowISO },
+      { _id: "cat_10", userId: "local_user_1", name: "Entertainment", type: "expense", color: "#8b5cf6", icon: "Film", isDefault: true, createdAt: nowISO },
+    ];
+    setItem(KEYS.CATEGORIES, initialCategories);
+  }
+
+  if (!localStorage.getItem(KEYS.FAVORITES)) {
+    const initialFavorites: FavoriteExpense[] = [
+      { _id: "fav_1", name: "Coffee", amount: 4.5, category: "Food & Dining", icon: "Coffee", color: "#f59e0b" },
+      { _id: "fav_2", name: "Taxi Ride", amount: 15, category: "Transportation", icon: "Car", color: "#3b82f6" },
+      { _id: "fav_3", name: "Quick Lunch", amount: 12, category: "Food & Dining", icon: "Utensils", color: "#10b981" },
+    ];
+    setItem(KEYS.FAVORITES, initialFavorites);
+  }
 }
 
 // Auto-run seed data initialization
@@ -342,14 +511,38 @@ export function saveStoredTransaction(input: CreateTransactionInput): Transactio
     category: input.category,
     description: input.description,
     date: input.date ? new Date(input.date).toISOString() : nowISO,
+    time: input.time,
+    accountId: input.accountId,
+    toAccountId: input.toAccountId,
+    paymentMethod: input.paymentMethod,
+    receiptUrl: input.receiptUrl,
+    tags: input.tags,
     createdAt: nowISO,
     updatedAt: nowISO,
   };
   allList.unshift(newTx);
   setItem(KEYS.TRANSACTIONS, allList);
   recalculateBudgets();
+
+  // Adjust account balance if linked
+  if (input.accountId) {
+    try {
+      const accounts = getItem<Account[]>(KEYS.ACCOUNTS, []);
+      const accIdx = accounts.findIndex((a) => a._id === input.accountId);
+      if (accIdx !== -1) {
+        if (input.type === "income") accounts[accIdx].balance += input.amount;
+        else if (input.type === "expense") accounts[accIdx].balance -= input.amount;
+        setItem(KEYS.ACCOUNTS, accounts);
+      }
+    } catch (e) {
+      console.error("Account balance update error", e);
+    }
+  }
+
   return newTx;
 }
+
+export const addStoredTransaction = saveStoredTransaction;
 
 export function updateStoredTransaction(id: string, input: UpdateTransactionInput): Transaction {
   const allList = getItem<Transaction[]>(KEYS.TRANSACTIONS, []);
@@ -642,11 +835,23 @@ export function authenticateLocalUser(email: string, password?: string): AuthRes
   }
 
   // Strict Lookup in registered accounts: Must register first!
-  const registered = getItem<User[]>(KEYS.REGISTERED_USERS, []);
-  const found = registered.find((u) => u.email.toLowerCase() === normEmail);
+  let registered = getItem<User[]>(KEYS.REGISTERED_USERS, []);
+  let found = registered.find((u) => u.email.toLowerCase() === normEmail);
 
   if (!found) {
-    throw new Error("Account not found. Please register first before logging in.");
+    if (normEmail === "user@local.app" || normEmail === "lelisa@local.app") {
+      found = {
+        id: normEmail === "user@local.app" ? "local_user_2" : "local_user_1",
+        fullName: normEmail === "user@local.app" ? "Local Standard User" : "Lelisa Finance Tracking",
+        email: normEmail,
+        phone: "0969642103",
+        role: "user",
+      };
+      registered.push(found);
+      setItem(KEYS.REGISTERED_USERS, registered);
+    } else {
+      throw new Error("Account not found. Please register first before logging in.");
+    }
   }
 
   setItem(KEYS.USER, found);
@@ -683,4 +888,396 @@ export function registerLocalUser(data: { fullName: string; email: string; phone
   setItem(KEYS.USER, newUser);
   setItem(KEYS.TOKEN, "local_token_" + Date.now());
   return newUser;
+}
+
+// --- ACCOUNTS CRUD ---
+export function getStoredAccounts(): Account[] {
+  initializeSeedData();
+  const currentUser = getStoredUser();
+  const accounts = getItem<Account[]>(KEYS.ACCOUNTS, []);
+  return accounts.filter((a) => a.userId === currentUser.id);
+}
+
+export function addStoredAccount(input: CreateAccountInput): Account {
+  const accounts = getItem<Account[]>(KEYS.ACCOUNTS, []);
+  const currentUser = getStoredUser();
+  const nowISO = new Date().toISOString();
+  const newAccount: Account = {
+    _id: generateId(),
+    userId: currentUser.id,
+    ...input,
+    createdAt: nowISO,
+    updatedAt: nowISO,
+  };
+  accounts.push(newAccount);
+  setItem(KEYS.ACCOUNTS, accounts);
+  return newAccount;
+}
+
+export function updateStoredAccount(id: string, input: UpdateAccountInput): Account {
+  const accounts = getItem<Account[]>(KEYS.ACCOUNTS, []);
+  const idx = accounts.findIndex((a) => a._id === id);
+  if (idx === -1) throw new Error("Account not found");
+
+  const updated: Account = {
+    ...accounts[idx],
+    ...input,
+    updatedAt: new Date().toISOString(),
+  };
+  accounts[idx] = updated;
+  setItem(KEYS.ACCOUNTS, accounts);
+  return updated;
+}
+
+export function deleteStoredAccount(id: string): void {
+  let accounts = getItem<Account[]>(KEYS.ACCOUNTS, []);
+  accounts = accounts.filter((a) => a._id !== id);
+  setItem(KEYS.ACCOUNTS, accounts);
+}
+
+// --- BILLS CRUD ---
+export function getStoredBills(): Bill[] {
+  initializeSeedData();
+  const currentUser = getStoredUser();
+  const bills = getItem<Bill[]>(KEYS.BILLS, []);
+  return bills.filter((b) => b.userId === currentUser.id);
+}
+
+export function addStoredBill(input: CreateBillInput): Bill {
+  const bills = getItem<Bill[]>(KEYS.BILLS, []);
+  const currentUser = getStoredUser();
+  const nowISO = new Date().toISOString();
+  const newBill: Bill = {
+    _id: generateId(),
+    userId: currentUser.id,
+    ...input,
+    createdAt: nowISO,
+    updatedAt: nowISO,
+  };
+  bills.push(newBill);
+  setItem(KEYS.BILLS, bills);
+  return newBill;
+}
+
+export function updateStoredBill(id: string, input: UpdateBillInput): Bill {
+  const bills = getItem<Bill[]>(KEYS.BILLS, []);
+  const idx = bills.findIndex((b) => b._id === id);
+  if (idx === -1) throw new Error("Bill not found");
+
+  const updated: Bill = {
+    ...bills[idx],
+    ...input,
+    updatedAt: new Date().toISOString(),
+  };
+  bills[idx] = updated;
+  setItem(KEYS.BILLS, bills);
+  return updated;
+}
+
+export function toggleBillPaidStatus(id: string): Bill {
+  const bills = getItem<Bill[]>(KEYS.BILLS, []);
+  const idx = bills.findIndex((b) => b._id === id);
+  if (idx === -1) throw new Error("Bill not found");
+
+  const current = bills[idx];
+  const newStatus = current.status === "paid" ? "unpaid" : "paid";
+  const updated: Bill = {
+    ...current,
+    status: newStatus,
+    updatedAt: new Date().toISOString(),
+  };
+  bills[idx] = updated;
+  setItem(KEYS.BILLS, bills);
+
+  // If marked as paid, automatically log expense transaction if not already logged
+  if (newStatus === "paid") {
+    try {
+      addStoredTransaction({
+        type: "expense",
+        amount: current.amount,
+        category: current.category || "Utilities",
+        description: `Paid Bill: ${current.name}`,
+        date: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error("Failed to auto-log bill payment transaction", e);
+    }
+  }
+
+  return updated;
+}
+
+export function deleteStoredBill(id: string): void {
+  let bills = getItem<Bill[]>(KEYS.BILLS, []);
+  bills = bills.filter((b) => b._id !== id);
+  setItem(KEYS.BILLS, bills);
+}
+
+// --- DEBT & LOAN CRUD ---
+export function getStoredDebts(): Debt[] {
+  initializeSeedData();
+  const currentUser = getStoredUser();
+  const debts = getItem<Debt[]>(KEYS.DEBTS, []);
+  return debts.filter((d) => d.userId === currentUser.id);
+}
+
+export function addStoredDebt(input: CreateDebtInput): Debt {
+  const debts = getItem<Debt[]>(KEYS.DEBTS, []);
+  const currentUser = getStoredUser();
+  const nowISO = new Date().toISOString();
+  const newDebt: Debt = {
+    _id: generateId(),
+    userId: currentUser.id,
+    ...input,
+    remainingBalance: input.remainingBalance ?? input.totalAmount,
+    createdAt: nowISO,
+    updatedAt: nowISO,
+  };
+  debts.push(newDebt);
+  setItem(KEYS.DEBTS, debts);
+  return newDebt;
+}
+
+export function updateStoredDebt(id: string, input: UpdateDebtInput): Debt {
+  const debts = getItem<Debt[]>(KEYS.DEBTS, []);
+  const idx = debts.findIndex((d) => d._id === id);
+  if (idx === -1) throw new Error("Debt record not found");
+
+  const updated: Debt = {
+    ...debts[idx],
+    ...input,
+    updatedAt: new Date().toISOString(),
+  };
+  debts[idx] = updated;
+  setItem(KEYS.DEBTS, debts);
+  return updated;
+}
+
+export function deleteStoredDebt(id: string): void {
+  let debts = getItem<Debt[]>(KEYS.DEBTS, []);
+  debts = debts.filter((d) => d._id !== id);
+  setItem(KEYS.DEBTS, debts);
+}
+
+// --- CATEGORIES CRUD ---
+export function getStoredCategories(): CustomCategory[] {
+  initializeSeedData();
+  const currentUser = getStoredUser();
+  const categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
+  return categories.filter((c) => c.userId === currentUser.id || c.isDefault);
+}
+
+export function addStoredCategory(input: CreateCategoryInput): CustomCategory {
+  const categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
+  const currentUser = getStoredUser();
+  const newCat: CustomCategory = {
+    _id: generateId(),
+    userId: currentUser.id,
+    ...input,
+    createdAt: new Date().toISOString(),
+  };
+  categories.push(newCat);
+  setItem(KEYS.CATEGORIES, categories);
+  return newCat;
+}
+
+export function updateStoredCategory(id: string, input: UpdateCategoryInput): CustomCategory {
+  const categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
+  const idx = categories.findIndex((c) => c._id === id);
+  if (idx === -1) throw new Error("Category not found");
+
+  const updated: CustomCategory = {
+    ...categories[idx],
+    ...input,
+  };
+  categories[idx] = updated;
+  setItem(KEYS.CATEGORIES, categories);
+  return updated;
+}
+
+export function deleteStoredCategory(id: string): void {
+  let categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
+  categories = categories.filter((c) => c._id !== id);
+  setItem(KEYS.CATEGORIES, categories);
+}
+
+// --- FAVORITES QUICK-ADD ---
+export function getStoredFavorites(): FavoriteExpense[] {
+  initializeSeedData();
+  return getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
+}
+
+export function addStoredFavorite(fav: Omit<FavoriteExpense, "_id">): FavoriteExpense {
+  const favs = getStoredFavorites();
+  const newFav: FavoriteExpense = {
+    _id: generateId(),
+    ...fav,
+  };
+  favs.push(newFav);
+  setItem(KEYS.FAVORITES, favs);
+  return newFav;
+}
+
+export function deleteStoredFavorite(id: string): void {
+  let favs = getStoredFavorites();
+  favs = favs.filter((f) => f._id !== id);
+  setItem(KEYS.FAVORITES, favs);
+}
+
+// --- PIN LOCK SECURITY ---
+export function getStoredPin(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(KEYS.PIN);
+}
+
+export function setStoredPin(pin: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(KEYS.PIN, pin);
+}
+
+export function removeStoredPin(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(KEYS.PIN);
+}
+
+// --- BACKUP DATA IMPORT & EXPORT ---
+export function exportFullBackupJSON(): string {
+  const data = {
+    version: "1.0.0",
+    exportedAt: new Date().toISOString(),
+    transactions: getItem(KEYS.TRANSACTIONS, []),
+    budgets: getItem(KEYS.BUDGETS, []),
+    goals: getItem(KEYS.GOALS, []),
+    recurring: getItem(KEYS.RECURRING, []),
+    accounts: getItem(KEYS.ACCOUNTS, []),
+    bills: getItem(KEYS.BILLS, []),
+    debts: getItem(KEYS.DEBTS, []),
+    categories: getItem(KEYS.CATEGORIES, []),
+    favorites: getItem(KEYS.FAVORITES, []),
+    exchangeRates: getItem(KEYS.EXCHANGE_RATES, []),
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+function remapUserId<T extends { userId?: string }>(items: T[], newUserId: string): T[] {
+  if (!Array.isArray(items)) return [];
+  return items.map((item) => ({
+    ...item,
+    userId: newUserId,
+  }));
+}
+
+export function importFullBackupJSON(jsonString: string): boolean {
+  try {
+    const data = JSON.parse(jsonString);
+    if (!data.transactions && !data.accounts && !data.budgets) {
+      throw new Error("Invalid backup JSON format");
+    }
+
+    const currentUser = getCurrentUserContext();
+    const currentId = currentUser?.id || "local_user_1";
+
+    if (Array.isArray(data.transactions)) {
+      setItem(KEYS.TRANSACTIONS, remapUserId(data.transactions, currentId));
+    }
+    if (Array.isArray(data.budgets)) {
+      setItem(KEYS.BUDGETS, remapUserId(data.budgets, currentId));
+    }
+    if (Array.isArray(data.goals)) {
+      setItem(KEYS.GOALS, remapUserId(data.goals, currentId));
+    }
+    if (Array.isArray(data.recurring)) {
+      setItem(KEYS.RECURRING, remapUserId(data.recurring, currentId));
+    }
+    if (Array.isArray(data.accounts)) {
+      setItem(KEYS.ACCOUNTS, remapUserId(data.accounts, currentId));
+    }
+    if (Array.isArray(data.bills)) {
+      setItem(KEYS.BILLS, remapUserId(data.bills, currentId));
+    }
+    if (Array.isArray(data.debts)) {
+      setItem(KEYS.DEBTS, remapUserId(data.debts, currentId));
+    }
+    if (Array.isArray(data.categories)) {
+      setItem(KEYS.CATEGORIES, remapUserId(data.categories, currentId));
+    }
+    if (Array.isArray(data.favorites)) {
+      setItem(KEYS.FAVORITES, data.favorites);
+    }
+    if (Array.isArray(data.exchangeRates)) {
+      setItem(KEYS.EXCHANGE_RATES, remapUserId(data.exchangeRates, currentId));
+    }
+
+    recalculateBudgets();
+    return true;
+  } catch (e) {
+    console.error("Backup import error:", e);
+    throw new Error("Failed to parse JSON backup file.");
+  }
+}
+
+// --- EXCHANGE RATES STORAGE ---
+export interface ExchangeRateDoc {
+  _id: string;
+  userId: string;
+  from: string;
+  to: string;
+  rate: number;
+}
+
+export function getStoredExchangeRates(): ExchangeRateDoc[] {
+  const current = getCurrentUserContext();
+  const all = getItem<ExchangeRateDoc[]>(KEYS.EXCHANGE_RATES, []);
+  return all.filter((r) => r.userId === current.id);
+}
+
+export function saveStoredExchangeRate(from: string, to: string, rate: number): ExchangeRateDoc {
+  const current = getCurrentUserContext();
+  const all = getItem<ExchangeRateDoc[]>(KEYS.EXCHANGE_RATES, []);
+
+  const existingIdx = all.findIndex((r) => r.userId === current.id && r.from === from && r.to === to);
+  let updatedDoc: ExchangeRateDoc;
+  if (existingIdx !== -1) {
+    all[existingIdx].rate = rate;
+    updatedDoc = all[existingIdx];
+  } else {
+    updatedDoc = {
+      _id: generateId(),
+      userId: current.id,
+      from,
+      to,
+      rate,
+    };
+    all.push(updatedDoc);
+  }
+  setItem(KEYS.EXCHANGE_RATES, all);
+  return updatedDoc;
+}
+
+export function deleteStoredExchangeRate(id: string): void {
+  let all = getItem<ExchangeRateDoc[]>(KEYS.EXCHANGE_RATES, []);
+  all = all.filter((r) => r._id !== id);
+  setItem(KEYS.EXCHANGE_RATES, all);
+}
+
+export function getEffectiveExchangeRates() {
+  const userRates = getStoredExchangeRates();
+  const defaults: Record<string, number> = {
+    USD: 120.0,
+    EUR: 130.0,
+    GBP: 150.0,
+    ETB: 1.0,
+  };
+
+  userRates.forEach((r) => {
+    if (r.to === "ETB") {
+      defaults[r.from] = r.rate;
+    }
+  });
+
+  return {
+    base: "ETB",
+    rates: defaults,
+    etbRates: defaults,
+  };
 }

@@ -19,7 +19,10 @@ export const useUpsertExchangeRate = () => {
   return useMutation({
     mutationFn: ({ from, to, rate }: { from: string; to: string; rate: number }) =>
       upsertUserRate(from, to, rate),
-    onSuccess: () => qc.invalidateQueries({ queryKey: EXCHANGE_RATES_KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EXCHANGE_RATES_KEY });
+      qc.invalidateQueries({ queryKey: ["exchange-rates"] });
+    },
   });
 };
 
@@ -27,6 +30,9 @@ export const useDeleteExchangeRate = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteUserRate(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: EXCHANGE_RATES_KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EXCHANGE_RATES_KEY });
+      qc.invalidateQueries({ queryKey: ["exchange-rates"] });
+    },
   });
 };

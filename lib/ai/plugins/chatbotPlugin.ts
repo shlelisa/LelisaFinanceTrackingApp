@@ -1,0 +1,179 @@
+import type { AIPlugin, AIInsightItem } from "../aiEngine";
+import { getFullAIContext, type FinancialAIContext } from "../aiContextProviders";
+import { getStoredDebts, getStoredBills, getStoredCategories, getStoredTransactions } from "../../storage/localStorage";
+
+export interface ChatMessage {
+  id: string;
+  sender: "user" | "ai";
+  text: string;
+  timestamp: string;
+}
+
+export class ChatbotPlugin implements AIPlugin {
+  id = "chatbot-plugin";
+  name = "Dynamic Financial AI Reasoning Engine";
+  version = "2.0.0";
+  capabilities: ("insights" | "forecast" | "categorization" | "chat")[] = ["chat"];
+
+  async analyze(ctx: FinancialAIContext): Promise<AIInsightItem[]> {
+    return [];
+  }
+
+  public async askQuestion(question: string, context?: FinancialAIContext): Promise<string> {
+    const ctx = context || getFullAIContext();
+    const q = question.toLowerCase().trim();
+
+    // 0. User Profile & Phone Number Query
+    if (q.includes("phone") || q.includes("contact") || q.includes("profile") || q.includes("number") || q.includes("who am i")) {
+      const p = ctx.userProfile;
+      return `👤 **Your Registered Profile Info:**\n• **Full Name:** ${p.fullName}\n• **Email:** ${p.email}\n• **Phone Number:** ${p.phone || "Not set (Add it in Profile & Settings)"}\n• **Account Role:** ${p.role.toUpperCase()}`;
+    }
+
+    // 1. Dynamic Debt & Loans Query
+    if (q.includes("debt") || q.includes("loan") || q.includes("owe") || q.includes("lent") || q.includes("borrow")) {
+      const debts = getStoredDebts();
+      if (debts.length === 0) {
+        return "You currently have no active debt or loan records.";
+      }
+
+      const lentList = debts.filter((d) => d.type === "lent" && d.remainingBalance > 0);
+      const borrowedList = debts.filter((d) => d.type === "borrowed" && d.remainingBalance > 0);
+
+      let msg = "💳 **Live Debt & Loans Summary:**\n\n";
+
+      if (lentList.length > 0) {
+        const totalLent = lentList.reduce((s, d) => s + d.remainingBalance, 0);
+        msg += `💰 **Money Lent To Others ($${totalLent.toFixed(2)}):**\n`;
+        lentList.forEach((d) => {
+          msg += `• **${d.person}**: $${d.remainingBalance.toFixed(2)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
+        });
+        msg += "\n";
+      }
+
+      if (borrowedList.length > 0) {
+        const totalBorrowed = borrowedList.reduce((s, d) => s + d.remainingBalance, 0);
+        msg += `⚠️ **Money You Borrowed ($${totalBorrowed.toFixed(2)}):**\n`;
+        borrowedList.forEach((d) => {
+          msg += `• **${d.person}**: $${d.remainingBalance.toFixed(2)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
+        });
+      }
+
+      return msg;
+    }
+
+    // 2. Dynamic Bills & Subscriptions Query
+    if (q.includes("bill") || q.includes("subscription") || q.includes("due") || q.includes("utility") || q.includes("unpaid")) {
+      const bills = getStoredBills();
+      if (bills.length === 0) {
+        return "You have no recurring bills or subscriptions configured.";
+      }
+
+      const unpaid = bills.filter((b) => b.status === "unpaid");
+      if (unpaid.length === 0) {
+        return "🎉 Great news! All your recurring bills for this cycle are marked as **Paid**.";
+      }
+
+      const totalUnpaid = unpaid.reduce((s, b) => s + b.amount, 0);
+      let msg = `📅 **Upcoming & Unpaid Bills ($${totalUnpaid.toFixed(2)}):**\n\n`;
+      unpaid.forEach((b) => {
+        msg += `• **${b.name}** (${b.category}): $${b.amount.toFixed(2)} — Due: ${b.dueDate ? new Date(b.dueDate).toLocaleDateString() : "Pending"}\n`;
+      });
+      return msg;
+    }
+
+    // 3. Dynamic Category / Merchant Lookup
+    const allCategories = getStoredCategories().map((c) => c.name.toLowerCase());
+    const matchedCategory = allCategories.find((catName) => q.includes(catName));
+
+    if (matchedCategory) {
+      const breakdown = ctx.transactionVelocity.expenseCategoryBreakdown;
+      const matchedKey = Object.keys(breakdown).find((k) => k.toLowerCase() === matchedCategory);
+      const spent = matchedKey ? breakdown[matchedKey] : 0;
+
+      return `📊 Dynamic Lookup for **${matchedCategory.toUpperCase()}**:\nYou have spent **$${spent.toFixed(2)}** in this category this month.`;
+    }
+
+    // Dynamic Merchant Lookup
+    const transactions = getStoredTransactions();
+    const words = q.split(" ").filter((w) => w.length > 3 && !["much", "spent", "where", "what", "show", "tell", "about"].includes(w));
+
+    for (const word of words) {
+      const matches = transactions.filter((t) => t.description.toLowerCase().includes(word));
+      if (matches.length > 0) {
+        const total = matches.reduce((s, t) => s + t.amount, 0);
+        return `🔍 Found **${matches.length}** transactions matching "${word}":\nTotal spent: **$${total.toFixed(2)}** across matching items.`;
+      }
+    }
+
+    // 4. Dynamic Saving Suggestions & Financial Coaching
+    if (
+      q.includes("suggest") ||
+      q.includes("advice") ||
+      q.includes("recommend") ||
+      q.includes("tip") ||
+      q.includes("how to save") ||
+      q.includes("what should i do")
+    ) {
+      const savingsRate = ctx.transactionVelocity.savingsRatePercentage;
+      const totalIncome = ctx.transactionVelocity.totalIncome;
+      const totalExpenses = ctx.transactionVelocity.totalExpenses;
+      const netSavings = ctx.transactionVelocity.netSavings;
+      const topExpenseCategories = Object.entries(ctx.transactionVelocity.expenseCategoryBreakdown)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      const topCatStr = topExpenseCategories.map(([cat, amt]) => `• **${cat}**: $${amt.toFixed(2)}`).join("\n");
+
+      let adviceMsg = `🤖 **Dynamic AI Financial Advisor Response:**\n\n`;
+
+      adviceMsg += `📊 **Real-Time Portfolio Analysis:**\n`;
+      adviceMsg += `• **Monthly Cash Flow:** $${totalIncome.toFixed(2)} (In) vs $${totalExpenses.toFixed(2)} (Out)\n`;
+      adviceMsg += `• **Net Monthly Surplus:** $${netSavings.toFixed(2)} (${savingsRate}% rate)\n\n`;
+
+      adviceMsg += `🔍 **Primary Expenditure Focus Areas:**\n${topCatStr || "• No major expense categories recorded."}\n\n`;
+
+      adviceMsg += `💡 **Tailored AI Optimization Strategy:**\n`;
+      if (savingsRate < 20) {
+        adviceMsg += `1. **Target 20% Net Savings:** Increase monthly surplus to at least **$${(totalIncome * 0.2).toFixed(2)}**.\n`;
+      } else {
+        adviceMsg += `1. **High Savings Rate Maintained:** You are saving **${savingsRate}%** of your total monthly cash flow.\n`;
+      }
+
+      if (topExpenseCategories.length > 0) {
+        const topCat = topExpenseCategories[0];
+        adviceMsg += `2. **Optimize ${topCat[0]}:** Trimming **${topCat[0]}** by 15% recovers **$${(topCat[1] * 0.15).toFixed(2)}** per month.\n`;
+      }
+
+      adviceMsg += `3. **Enforce Budget Guardrails:** Put hard monthly limits on your highest velocity categories in **Budgets**.\n`;
+      adviceMsg += `4. **Goal Acceleration:** Redirect surpluses to your active goals in **Savings Goals**.`;
+
+      return adviceMsg;
+    }
+
+    // 5. Dynamic Budget Check
+    if (q.includes("budget") || q.includes("limit") || q.includes("over")) {
+      const exceeded = ctx.budgetRisk.budgets.filter((b) => b.riskLevel === "exceeded");
+      if (exceeded.length > 0) {
+        const categories = exceeded.map((b) => `• **${b.category}**: $${b.spent.toFixed(2)} spent / $${b.limit.toFixed(2)} limit`).join("\n");
+        return `⚠️ **Dynamic Alert: Exceeded Budgets Detected!**\n\n${categories}\n\nOverall budget adherence: **${ctx.budgetRisk.overallAdherenceRate}%**.`;
+      }
+      return `✅ All active budgets are currently **within healthy limits**. Overall adherence rate: **${ctx.budgetRisk.overallAdherenceRate}%**.`;
+    }
+
+    // 6. Dynamic Account Balances
+    if (q.includes("account") || q.includes("bank") || q.includes("cash") || q.includes("balance") || q.includes("net worth")) {
+      const list = ctx.liquidity.accountsSummary
+        .map((a) => `• **${a.name}** (${a.type}): $${a.balance.toFixed(2)} ${a.currency}`)
+        .join("\n");
+      return `🏦 **Dynamic Accounts & Liquidity Overview:**\nTotal Net Worth: **$${ctx.liquidity.totalLiquidity.toFixed(2)}**\n\n${list}`;
+    }
+
+    // 7. Dynamic Greetings
+    if (q.includes("hello") || q.includes("hi") || q.includes("hey") || q.includes("who are you")) {
+      return `Hello! 👋 I am your Dynamic Financial AI Assistant. I analyze your live transactions, debts, bills, categories, and accounts to answer your questions in real time. Try asking me about debts, bills, spending on any category, or savings advice!`;
+    }
+
+    // Dynamic Fallback with Live Metrics
+    return `🔍 **Dynamic Financial Summary:**\n• Total Liquidity: **$${ctx.liquidity.totalLiquidity.toFixed(2)}**\n• Total Income: **$${ctx.transactionVelocity.totalIncome.toFixed(2)}**\n• Total Expenses: **$${ctx.transactionVelocity.totalExpenses.toFixed(2)}**\n• Savings Rate: **${ctx.transactionVelocity.savingsRatePercentage}%**\n\nTry asking me: *"Who owes me money?"*, *"What bills are due?"*, *"How much did I spend on [Category/Merchant]?"*, or *"What do you suggest on saving?"*.`;
+  }
+}

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Personal Finance Tracking</string>
-    <string name="title_activity_main">Personal Finance Tracking</string>
-    <string name="package_name">com.personelfinance.app</string>
-    <string name="custom_url_scheme">com.personelfinance.app</string>
+    <string name="app_name">LelisaFin</string>
+    <string name="title_activity_main">LelisaFin</string>
+    <string name="package_name">com.lelisafin.app</string>
+    <string name="custom_url_scheme">com.lelisafin.app</string>
 </resources>

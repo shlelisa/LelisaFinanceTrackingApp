@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useInsights } from "@/hooks/useInsights";
-import { Loader2, Lightbulb, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { AIEngineRegistry, type AIInsightItem } from "@/lib/ai/aiEngine";
+import { saveDerivedAICache, getDerivedAICache } from "@/lib/ai/aiDerivedStorage";
+import { Loader2, Lightbulb, AlertTriangle, CheckCircle2, Info, Sparkles } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const severityConfig = {
@@ -14,16 +16,35 @@ const severityConfig = {
 
 export default function AIInsights() {
   const { t } = useTranslation();
-  const { data, isLoading } = useInsights();
-  const insights = data?.insights ?? [];
+  const [insights, setInsights] = useState<AIInsightItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEngineInsights() {
+      setIsLoading(true);
+      try {
+        const results = await AIEngineRegistry.getInstance().runAnalysis();
+        setInsights(results);
+        saveDerivedAICache(results);
+      } catch (err) {
+        console.error("AI Engine execution error", err);
+        const cached = getDerivedAICache();
+        if (cached) setInsights(cached.insights);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadEngineInsights();
+  }, []);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center gap-2">
-        <Lightbulb className="size-5 text-yellow-500" />
-        <CardTitle className="text-lg">{t("ai.title")}</CardTitle>
+    <Card className="shadow-xs">
+      <CardHeader className="flex flex-row items-center gap-2 border-b py-3">
+        <Sparkles className="size-5 text-amber-500" />
+        <CardTitle className="text-base font-bold">{t("ai.title")}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -34,38 +55,26 @@ export default function AIInsights() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {insights.map((insight, i) => {
-              const cfg = severityConfig[insight.severity];
+            {insights.map((insight) => {
+              const cfg = severityConfig[insight.severity] || severityConfig.info;
               const Icon = cfg.icon;
-              const typeLabel = t(`ai.type_${insight.type}`);
 
               return (
                 <div
-                  key={i}
-                  className={`flex items-start gap-3 rounded-lg border p-3 ${cfg.class}`}
+                  key={insight.id}
+                  className={`flex items-start gap-3 rounded-xl border p-3 shadow-2xs ${cfg.class}`}
                 >
-                  <Icon className="mt-0.5 size-5 shrink-0" />
+                  <Icon className="mt-0.5 size-4 shrink-0 text-foreground" />
                   <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] uppercase">
-                        {typeLabel}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] uppercase ${
-                          insight.severity === "warning"
-                            ? "border-yellow-500 text-yellow-600"
-                            : insight.severity === "success"
-                              ? "border-green-500 text-green-600"
-                              : "border-blue-500 text-blue-600"
-                        }`}
-                      >
-                        {insight.severity}
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-bold text-xs text-foreground">{insight.title}</span>
+                      <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-wider">
+                        {insight.type}
                       </Badge>
                     </div>
-                    <p className="text-sm leading-relaxed text-foreground/90">
+                    <p className="text-xs leading-relaxed text-muted-foreground">
                       {insight.message.split(/\*\*(.*?)\*\*/).map((part, i) =>
-                        i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+                        i % 2 === 1 ? <strong key={i} className="text-foreground">{part}</strong> : part
                       )}
                     </p>
                   </div>
