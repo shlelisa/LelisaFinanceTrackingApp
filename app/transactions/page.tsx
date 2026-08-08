@@ -23,8 +23,8 @@ import {
   useDeleteTransaction,
 } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
-import { CATEGORIES } from "@/lib/constants";
 import type { TransactionFormValues } from "@/lib/validation/transaction";
+import { getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import { type ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -110,10 +110,10 @@ export default function TransactionsPage() {
           return (
             <span
               className={`tabular-nums ${
-                tx.type === "income" ? "text-success" : "text-error"
+                tx.type === "income" ? "text-success" : tx.type === "expense" ? "text-error" : "text-muted-foreground"
               }`}
             >
-              {tx.type === "income" ? "+" : "-"}
+              {tx.type === "income" ? "+" : tx.type === "expense" ? "-" : "↔"}
               <Money amount={tx.amount} />
               {showOrig && (
                 <span className="ml-1 text-xs text-muted-foreground">
@@ -249,9 +249,9 @@ export default function TransactionsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                {CATEGORIES.map((cat) => (
+                {getAllKnownCategoryNames().map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {t(`categories.${cat}`)}
+                    {cat}
                   </SelectItem>
                 ))}
               </SelectContent>

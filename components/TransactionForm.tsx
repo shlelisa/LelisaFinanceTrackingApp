@@ -19,13 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CATEGORIES, CURRENCIES } from "@/lib/constants";
+import { CURRENCIES } from "@/lib/constants";
 import {
   transactionSchema,
   type TransactionFormValues,
 } from "@/lib/validation/transaction";
 import { useTranslation } from "@/hooks/useTranslation";
-import { getStoredAccounts, getStoredCategories } from "@/lib/storage/localStorage";
+import { getStoredAccounts, getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import type { Account } from "@/lib/types/account";
 import { autoCategorizeDescription } from "@/lib/aiCategorizer";
 import ReceiptOcrScanner from "@/components/ReceiptOcrScanner";
@@ -74,8 +74,7 @@ export default function TransactionForm({
       setAccounts(getStoredAccounts());
       setSubmitError(null);
 
-      const storedCats = getStoredCategories().map((c) => c.name);
-      const combined = Array.from(new Set([...storedCats, ...CATEGORIES]));
+      const combined = getAllKnownCategoryNames();
       setCategoryList(combined);
 
       setCalcInput(defaultValues?.amount ? String(defaultValues.amount) : "");

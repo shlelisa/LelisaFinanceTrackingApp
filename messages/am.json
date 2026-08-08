@@ -126,7 +126,13 @@
     "category": "ምድብ",
     "select_category": "ምድብ ይምረጡ",
     "budget_amount": "የበጀት መጠን",
-    "amount_placeholder": "5000"
+    "amount_placeholder": "5000",
+    "period": "የበጀት ጊዜ",
+    "period_daily": "በየቀኑ",
+    "period_weekly": "በየሳምንቱ",
+    "period_monthly": "በየወሩ",
+    "period_quarterly": "በየሩብ ዓመቱ",
+    "period_yearly": "በየዓመቱ"
   },
   "goals": {
     "title": "የቁጠራ ዒላማዎች",

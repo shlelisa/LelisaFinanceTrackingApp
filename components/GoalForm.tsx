@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { goalFormSchema, GoalFormValues } from "@/lib/validation/goal";
-import { CATEGORIES } from "@/lib/constants";
+import { getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface GoalFormProps {
@@ -138,9 +138,9 @@ const GoalForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {CATEGORIES.map((cat) => (
+                      {getAllKnownCategoryNames().map((cat) => (
                         <SelectItem key={cat} value={cat}>
-                          {t(`categories.${cat}`)}
+                          {cat}
                         </SelectItem>
                       ))}
                     </SelectContent>

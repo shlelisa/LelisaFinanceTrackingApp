@@ -87,6 +87,7 @@ export default function BudgetsPage() {
           editBudget
             ? {
                 category: editBudget.category as BudgetFormValues["category"],
+                period: editBudget.period,
                 limitAmount: editBudget.limitAmount,
               }
             : undefined

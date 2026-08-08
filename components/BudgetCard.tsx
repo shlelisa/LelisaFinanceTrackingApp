@@ -32,7 +32,12 @@ const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium">{budget.category}</CardTitle>
-        {isExceeded && <Badge variant="destructive">{t("budgets.exceeded")}</Badge>}
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs capitalize">
+            {t(`budgets.period_${budget.period}`)}
+          </Badge>
+          {isExceeded && <Badge variant="destructive">{t("budgets.exceeded")}</Badge>}
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex justify-between text-sm text-muted-foreground">

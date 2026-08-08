@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { addStoredBill, updateStoredBill } from "@/lib/storage/localStorage";
+import { addStoredBill, updateStoredBill, getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import type { Bill } from "@/lib/types/bill";
-import { CATEGORIES, CURRENCIES } from "@/lib/constants";
+import { CURRENCIES } from "@/lib/constants";
 import { X } from "lucide-react";
 
 interface BillFormProps {
@@ -107,7 +107,7 @@ export default function BillForm({ bill, onClose, onSuccess }: BillFormProps) {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
               >
-                {CATEGORIES.map((cat) => (
+                {getAllKnownCategoryNames("expense").map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>

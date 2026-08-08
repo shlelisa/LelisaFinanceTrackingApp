@@ -59,7 +59,7 @@ export default function CalendarPage() {
       map[d] = { income: 0, expense: 0 };
       for (const tx of dayTransactions[d]) {
         if (tx.type === "income") map[d].income += tx.amount;
-        else map[d].expense += tx.amount;
+        else if (tx.type === "expense") map[d].expense += tx.amount;
       }
     }
     return map;

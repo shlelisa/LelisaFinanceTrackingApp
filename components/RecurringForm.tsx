@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { recurringFormSchema, RecurringFormValues } from "@/lib/validation/recurring";
-import { CATEGORIES } from "@/lib/constants";
+import { getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface RecurringFormProps {
@@ -142,9 +142,9 @@ const RecurringForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {CATEGORIES.map((cat) => (
+                      {getAllKnownCategoryNames().map((cat) => (
                         <SelectItem key={cat} value={cat}>
-                          {t(`categories.${cat}`)}
+                          {cat}
                         </SelectItem>
                       ))}
                     </SelectContent>

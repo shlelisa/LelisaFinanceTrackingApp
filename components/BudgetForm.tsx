@@ -26,7 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { budgetFormSchema, BudgetFormValues } from "@/lib/validation/budget";
-import { CATEGORIES } from "@/lib/constants";
+import { BUDGET_PERIODS } from "@/lib/types/budget";
+import { getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface BudgetFormProps {
@@ -49,10 +50,10 @@ const BudgetForm = ({
   const { t } = useTranslation();
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetFormSchema) as any,
-    defaultValues: { category: "", limitAmount: 0, ...defaultValues },
+    defaultValues: { category: "", period: "monthly", limitAmount: 0, ...defaultValues },
   });
 
-  const availableCategories = CATEGORIES.filter(
+  const availableCategories = getAllKnownCategoryNames("expense").filter(
     (cat) =>
       !existingCategories.includes(cat) || cat === defaultValues?.category,
   );
@@ -96,13 +97,37 @@ const BudgetForm = ({
                      <SelectContent>
                        {availableCategories.map((cat) => (
                          <SelectItem key={cat} value={cat}>
-                           {t(`categories.${cat}`)}
+                           {cat}
                          </SelectItem>
                        ))}
                      </SelectContent>
                    </Select>
                    <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
                  </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="period"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel>{t("budgets.period")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "monthly"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {BUDGET_PERIODS.map((period) => (
+                        <SelectItem key={period} value={period}>
+                          {t(`budgets.period_${period}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
+                </FormItem>
               )}
             />
             <FormField

@@ -1,9 +1,8 @@
 import type { DashboardSummary, MonthlyReport } from "../types/transaction";
-import { getStoredTransactions, getStoredBudgets, getStoredGoals, getStoredAccounts } from "./localStorage";
+import { getStoredTransactions, getStoredBudgets, getStoredGoals, canonicalCategoryName } from "./localStorage";
 
 export function computeDashboardSummary(): DashboardSummary {
   const transactions = getStoredTransactions();
-  const accounts = getStoredAccounts();
 
   const totalIncome = transactions
     .filter((t) => t.type === "income")
@@ -13,9 +12,7 @@ export function computeDashboardSummary(): DashboardSummary {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalAccountBalance = accounts.length > 0
-    ? accounts.reduce((sum, a) => sum + a.balance, 0)
-    : totalIncome - totalExpenses;
+  const totalAccountBalance = totalIncome - totalExpenses;
 
   const recentTransactions = transactions.slice(0, 5);
 
@@ -24,7 +21,8 @@ export function computeDashboardSummary(): DashboardSummary {
   transactions
     .filter((t) => t.type === "expense")
     .forEach((t) => {
-      expenseMap[t.category] = (expenseMap[t.category] || 0) + t.amount;
+      const name = canonicalCategoryName(t.category);
+      expenseMap[name] = (expenseMap[name] || 0) + t.amount;
     });
 
   const expenseBreakdown = Object.entries(expenseMap).map(([name, value]) => ({
@@ -63,9 +61,10 @@ export function computeMonthlyReport(year?: number): MonthlyReport {
       const m = d.getMonth();
       if (t.type === "income") {
         reportMap[m].income += t.amount;
-      } else {
+      } else if (t.type === "expense") {
         reportMap[m].expense += t.amount;
-        categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
+        const name = canonicalCategoryName(t.category);
+        categoryMap[name] = (categoryMap[name] || 0) + t.amount;
       }
     }
   });
@@ -111,9 +110,10 @@ export function computeReportRange(startDate: string, endDate: string, groupBy: 
   filtered.forEach((t) => {
     if (t.type === "income") {
       totalIncome += t.amount;
-    } else {
+    } else if (t.type === "expense") {
       totalExpenses += t.amount;
-      categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
+      const name = canonicalCategoryName(t.category);
+      categoryMap[name] = (categoryMap[name] || 0) + t.amount;
     }
   });
 
@@ -126,7 +126,7 @@ export function computeReportRange(startDate: string, endDate: string, groupBy: 
 
     if (!trendMap[label]) trendMap[label] = { income: 0, expense: 0 };
     if (t.type === "income") trendMap[label].income += t.amount;
-    else trendMap[label].expense += t.amount;
+    else if (t.type === "expense") trendMap[label].expense += t.amount;
   });
 
   const report = Object.entries(trendMap).map(([label, val]) => ({
@@ -154,7 +154,8 @@ export function computeCategoryBreakdown(): { name: string; value: number }[] {
   transactions
     .filter((t) => t.type === "expense")
     .forEach((t) => {
-      categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
+      const name = canonicalCategoryName(t.category);
+      categoryMap[name] = (categoryMap[name] || 0) + t.amount;
     });
 
   return Object.entries(categoryMap).map(([name, value]) => ({

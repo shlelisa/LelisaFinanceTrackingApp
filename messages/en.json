@@ -126,7 +126,13 @@
     "category": "Category",
     "select_category": "Select a category",
     "budget_amount": "Budget Amount",
-    "amount_placeholder": "5000"
+    "amount_placeholder": "5000",
+    "period": "Budget Period",
+    "period_daily": "Daily",
+    "period_weekly": "Weekly",
+    "period_monthly": "Monthly",
+    "period_quarterly": "Quarterly",
+    "period_yearly": "Yearly"
   },
   "goals": {
     "title": "Savings Goals",

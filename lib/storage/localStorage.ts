@@ -1,5 +1,5 @@
 import type { Transaction, CreateTransactionInput, UpdateTransactionInput, TransactionFilters, FavoriteExpense } from "../types/transaction";
-import type { Budget } from "../types/budget";
+import type { Budget, BudgetPeriod } from "../types/budget";
 import type { CreateBudgetInput, UpdateBudgetInput } from "../validation/budget";
 import type { Goal } from "../types/goal";
 import type { CreateGoalInput, UpdateGoalInput } from "../validation/goal";
@@ -166,6 +166,7 @@ function initializeSeedData() {
         _id: generateId(),
         userId: "local_user_1",
         category: "Food & Dining",
+        period: "monthly",
         limitAmount: 600,
         spent: 450,
         remaining: 150,
@@ -176,6 +177,7 @@ function initializeSeedData() {
         _id: generateId(),
         userId: "local_user_1",
         category: "Utilities",
+        period: "monthly",
         limitAmount: 200,
         spent: 120,
         remaining: 80,
@@ -186,6 +188,7 @@ function initializeSeedData() {
         _id: generateId(),
         userId: "local_user_1",
         category: "Entertainment",
+        period: "monthly",
         limitAmount: 150,
         spent: 85,
         remaining: 65,
@@ -474,7 +477,10 @@ export function getStoredTransactions(filters?: TransactionFilters): Transaction
       list = list.filter((t) => t.type === filters.type);
     }
     if (filters.category) {
-      list = list.filter((t) => t.category === filters.category);
+      const categoryFilter = filters.category;
+      list = list.filter(
+        (t) => normalizeCategory(t.category) === normalizeCategory(categoryFilter)
+      );
     }
     if (filters.startDate) {
       const s = new Date(filters.startDate).getTime();
@@ -586,30 +592,87 @@ export function getStoredBudgets(): Budget[] {
   return recomputed.filter((b) => b.userId === currentUser.id);
 }
 
+const LEGACY_CATEGORY_ALIASES: Record<string, string> = {
+  food: "food & dining",
+  houserent: "rent",
+  mobiledata: "utilities",
+  "mobile data": "utilities",
+  "mobile data & internet": "utilities",
+  income: "salary",
+};
+
+export function normalizeCategory(name: string): string {
+  if (!name) return "";
+  const trimmed = name.trim().toLowerCase().replace(/\s+/g, " ");
+  return LEGACY_CATEGORY_ALIASES[trimmed] || trimmed;
+}
+
+const CATEGORY_CANONICAL_NAMES: Record<string, string> = {
+  food: "Food & Dining",
+  "food & dining": "Food & Dining",
+  houserent: "Rent",
+  rent: "Rent",
+  mobiledata: "Utilities",
+  "mobile data": "Utilities",
+  "mobile data & internet": "Utilities",
+  utilities: "Utilities",
+  income: "Salary",
+  salary: "Salary",
+};
+
+export function canonicalCategoryName(name: string): string {
+  if (!name) return "Other";
+  const key = name.trim().toLowerCase().replace(/\s+/g, " ");
+  return CATEGORY_CANONICAL_NAMES[key] || name;
+}
+
+function startOfWeek(d: Date): Date {
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - diff);
+  return date;
+}
+
+function isTransactionInBudgetPeriod(txDate: Date, period: BudgetPeriod, now: Date): boolean {
+  const sameYear = txDate.getFullYear() === now.getFullYear();
+  switch (period) {
+    case "daily":
+      return sameYear && txDate.getMonth() === now.getMonth() && txDate.getDate() === now.getDate();
+    case "weekly":
+      return startOfWeek(txDate).getTime() === startOfWeek(now).getTime();
+    case "quarterly":
+      return sameYear && Math.floor(txDate.getMonth() / 3) === Math.floor(now.getMonth() / 3);
+    case "yearly":
+      return sameYear;
+    case "monthly":
+    default:
+      return sameYear && txDate.getMonth() === now.getMonth();
+  }
+}
+
 export function recalculateBudgets(budgetsInput?: Budget[]): Budget[] {
   const budgets = budgetsInput || getItem<Budget[]>(KEYS.BUDGETS, []);
   const transactions = getItem<Transaction[]>(KEYS.TRANSACTIONS, []);
 
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
 
   const updatedBudgets = budgets.map((b) => {
+    const period: BudgetPeriod = b.period || "monthly";
     const spent = transactions
       .filter(
         (t) =>
           t.userId === b.userId &&
           t.type === "expense" &&
-          t.category.toLowerCase() === b.category.toLowerCase() &&
-          new Date(t.date).getMonth() === currentMonth &&
-          new Date(t.date).getFullYear() === currentYear
+          normalizeCategory(t.category) === normalizeCategory(b.category) &&
+          isTransactionInBudgetPeriod(new Date(t.date), period, now)
       )
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
       ...b,
+      period,
       spent,
-      remaining: Math.max(0, b.limitAmount - spent),
+      remaining: b.limitAmount - spent,
       updatedAt: new Date().toISOString(),
     };
   });
@@ -627,6 +690,7 @@ export function saveStoredBudget(input: CreateBudgetInput): Budget {
     _id: generateId(),
     userId: currentUser.id,
     category: input.category,
+    period: input.period || "monthly",
     limitAmount: input.limitAmount,
     spent: 0,
     remaining: input.limitAmount,
@@ -1086,12 +1150,46 @@ export function updateStoredCategory(id: string, input: UpdateCategoryInput): Cu
   const idx = categories.findIndex((c) => c._id === id);
   if (idx === -1) throw new Error("Category not found");
 
+  const oldName = categories[idx].name;
   const updated: CustomCategory = {
     ...categories[idx],
     ...input,
   };
   categories[idx] = updated;
   setItem(KEYS.CATEGORIES, categories);
+
+  // Propagate renames so existing records keep pointing at the same category
+  if (input.name && input.name.trim() !== oldName) {
+    const newName = input.name.trim();
+    const currentUser = getStoredUser();
+
+    const remap = (items: { category?: string; userId?: string }[]) =>
+      items.forEach((item) => {
+        if (item.category === oldName) {
+          const belongs = !("userId" in item) || item.userId === currentUser.id;
+          if (belongs) item.category = newName;
+        }
+      });
+
+    const transactions = getItem<Transaction[]>(KEYS.TRANSACTIONS, []);
+    const budgets = getItem<Budget[]>(KEYS.BUDGETS, []);
+    const goals = getItem<Goal[]>(KEYS.GOALS, []);
+    const bills = getItem<Bill[]>(KEYS.BILLS, []);
+    const recurring = getItem<RecurringTransaction[]>(KEYS.RECURRING, []);
+
+    remap(transactions);
+    remap(budgets);
+    remap(goals);
+    remap(bills);
+    remap(recurring);
+
+    setItem(KEYS.TRANSACTIONS, transactions);
+    setItem(KEYS.BUDGETS, budgets);
+    setItem(KEYS.GOALS, goals);
+    setItem(KEYS.BILLS, bills);
+    setItem(KEYS.RECURRING, recurring);
+  }
+
   return updated;
 }
 
@@ -1099,6 +1197,30 @@ export function deleteStoredCategory(id: string): void {
   let categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
   categories = categories.filter((c) => c._id !== id);
   setItem(KEYS.CATEGORIES, categories);
+}
+
+export function getAllKnownCategoryNames(type?: "income" | "expense"): string[] {
+  const names = new Set<string>();
+
+  getStoredCategories().forEach((c) => {
+    if (!type || c.type === type) names.add(c.name);
+  });
+
+  const collect = (items: { category?: string; type?: string }[]) =>
+    items.forEach((item) => {
+      if (item.category && (!type || !item.type || item.type === type)) {
+        names.add(item.category);
+      }
+    });
+
+  collect(getStoredTransactions());
+  collect(getStoredBudgets());
+  collect(getStoredGoals());
+  collect(getStoredBills());
+  collect(getStoredRecurring());
+  collect(getStoredFavorites());
+
+  return Array.from(names);
 }
 
 // --- FAVORITES QUICK-ADD ---

@@ -1,5 +1,3 @@
-import { CATEGORIES, CURRENCIES } from "@/lib/constants";
-
 export interface ParsedVoiceCommand {
   type: "income" | "expense";
   amount: number | null;

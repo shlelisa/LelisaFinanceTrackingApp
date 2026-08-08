@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { parseVoiceCommand, type ParsedVoiceCommand } from "@/lib/voiceParser";
+import {
+  isSpeechSupported,
+  requestSpeechPermission,
+  startSpeechRecognition,
+  stopSpeechRecognition,
+} from "@/lib/speechRecognition";
 import { saveStoredTransaction } from "@/lib/storage/localStorage";
 import { Mic, MicOff, Check, X, Sparkles, AlertCircle } from "lucide-react";
 import Money from "./Money";
@@ -29,52 +35,40 @@ export default function VoiceTransactionModal({ open, onClose, onSuccess }: Voic
     }
   }, [open]);
 
-  const startListening = () => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setError("Web Speech API is not supported on this browser/device. You can type commands manually below.");
+  const startListening = async () => {
+    if (!isSpeechSupported()) {
+      setError("Speech recognition is not supported on this device. You can type commands manually below.");
       return;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
+    const granted = await requestSpeechPermission();
+    if (!granted) {
+      setError("Microphone permission was denied. Allow microphone access in device settings.");
+      return;
+    }
 
-      recognition.onstart = () => {
+    startSpeechRecognition({
+      language: "en-US",
+      onStart: () => {
         setIsListening(true);
         setError("");
-      };
-
-      recognition.onresult = (event: any) => {
-        const current = event.results[0][0].transcript;
-        setTranscript(current);
-        const result = parseVoiceCommand(current);
-        setParsed(result);
-      };
-
-      recognition.onerror = (err: any) => {
+      },
+      onResult: (transcript) => {
+        setTranscript(transcript);
+        setParsed(parseVoiceCommand(transcript));
+      },
+      onEnd: () => {
         setIsListening(false);
-        if (err.error !== "no-speech") {
-          setError("Speech recognition failed: " + err.error);
-        }
-      };
-
-      recognition.onend = () => {
+      },
+      onError: (message) => {
         setIsListening(false);
-      };
-
-      recognition.start();
-    } catch (e: any) {
-      setError("Failed to start speech recognition.");
-      setIsListening(false);
-    }
+        setError(message);
+      },
+    });
   };
 
   const stopListening = () => {
+    stopSpeechRecognition();
     setIsListening(false);
   };
 

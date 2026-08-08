@@ -169,9 +169,9 @@ export default function DashboardPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                          tx.type === "income" ? "bg-success/15 text-success" : "bg-error/15 text-error"
+                          tx.type === "income" ? "bg-success/15 text-success" : tx.type === "expense" ? "bg-error/15 text-error" : "bg-muted/15 text-muted-foreground"
                         }`}>
-                          {tx.type === "income" ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
+                          {tx.type === "income" ? <TrendingUp className="size-4" /> : tx.type === "expense" ? <TrendingDown className="size-4" /> : <ArrowRight className="size-4" />}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">{tx.description}</p>
@@ -182,10 +182,10 @@ export default function DashboardPage() {
                       </div>
                       <span
                         className={`text-sm font-bold ${
-                          tx.type === "income" ? "text-success" : "text-error"
+                          tx.type === "income" ? "text-success" : tx.type === "expense" ? "text-error" : "text-muted-foreground"
                         }`}
                       >
-                        {tx.type === "income" ? "+" : "-"}
+                        {tx.type === "income" ? "+" : tx.type === "expense" ? "-" : "↔"}
                         <Money amount={tx.amount} />
                       </span>
                     </div>

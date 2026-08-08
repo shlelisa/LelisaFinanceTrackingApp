@@ -126,7 +126,13 @@
     "category": "Garee",
     "select_category": "Garee filadhu",
     "budget_amount": "Hammi Bajataa",
-    "amount_placeholder": "5000"
+    "amount_placeholder": "5000",
+    "period": "Yeroo Bajataa",
+    "period_daily": "Guyyaa guyyaa",
+    "period_weekly": "Torban",
+    "period_monthly": "Ji'a",
+    "period_quarterly": "Kurtalee",
+    "period_yearly": "Waggaa"
   },
   "goals": {
     "title": "Kaayyoota Oolmaa",

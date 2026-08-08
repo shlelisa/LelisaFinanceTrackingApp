@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getStoredCategories, addStoredCategory, deleteStoredCategory } from "@/lib/storage/localStorage";
+import { getStoredCategories, addStoredCategory, updateStoredCategory, deleteStoredCategory } from "@/lib/storage/localStorage";
 import type { CustomCategory } from "@/lib/types/category";
-import { Plus, Trash2, Tag, Utensils, Car, ShoppingBag, Zap, Home, Activity, Film, Briefcase, Building, Gift } from "lucide-react";
+import { Plus, Trash2, Pencil, Tag, Utensils, Car, ShoppingBag, Zap, Home, Activity, Film, Briefcase, Building, Gift } from "lucide-react";
 
 const ICON_OPTIONS = [
   { name: "Briefcase", icon: Briefcase },
@@ -19,11 +19,26 @@ const ICON_OPTIONS = [
   { name: "Tag", icon: Tag },
 ];
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Briefcase,
+  Building,
+  Gift,
+  Utensils,
+  Car,
+  ShoppingBag,
+  Zap,
+  Home,
+  Activity,
+  Film,
+  Tag,
+};
+
 const COLORS = ["#10b981", "#3b82f6", "#ef4444", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4", "#64748b"];
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<CustomCategory[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(null);
   const [name, setName] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [color, setColor] = useState("#3b82f6");
@@ -37,17 +52,39 @@ export default function CategoriesPage() {
     loadCategories();
   }, []);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setName("");
+    setType("expense");
+    setColor("#3b82f6");
+    setIcon("Tag");
+    setEditingCategory(null);
+    setIsAdding(false);
+  };
+
+  const startEdit = (cat: CustomCategory) => {
+    setEditingCategory(cat);
+    setName(cat.name);
+    setType(cat.type);
+    setColor(cat.color || "#3b82f6");
+    setIcon(cat.icon || "Tag");
+    setIsAdding(true);
+  };
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    addStoredCategory({
-      name,
+    const payload = {
+      name: name.trim(),
       type,
       color,
       icon,
-    });
-    setName("");
-    setIsAdding(false);
+    };
+    if (editingCategory) {
+      updateStoredCategory(editingCategory._id, payload);
+    } else {
+      addStoredCategory(payload);
+    }
+    resetForm();
     loadCategories();
   };
 
@@ -68,7 +105,10 @@ export default function CategoriesPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => {
+            resetForm();
+            setIsAdding(true);
+          }}
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="size-4" /> Add Category
@@ -76,8 +116,10 @@ export default function CategoriesPage() {
       </div>
 
       {isAdding && (
-        <form onSubmit={handleCreate} className="rounded-xl border bg-card p-5 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-foreground">New Category</h3>
+        <form onSubmit={handleSave} className="rounded-xl border bg-card p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-foreground">
+            {editingCategory ? "Edit Category" : "New Category"}
+          </h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Name</label>
@@ -136,7 +178,7 @@ export default function CategoriesPage() {
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={() => setIsAdding(false)}
+              onClick={resetForm}
               className="rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground"
             >
               Cancel
@@ -145,7 +187,7 @@ export default function CategoriesPage() {
               type="submit"
               className="rounded-lg bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground"
             >
-              Save Category
+              {editingCategory ? "Save Changes" : "Save Category"}
             </button>
           </div>
         </form>
@@ -163,7 +205,10 @@ export default function CategoriesPage() {
                 className="flex size-9 items-center justify-center rounded-lg text-white font-bold"
                 style={{ backgroundColor: cat.color || "#3b82f6" }}
               >
-                <Tag className="size-4" />
+                {(() => {
+                  const IconComp = ICON_MAP[cat.icon || "Tag"] || Tag;
+                  return <IconComp className="size-4" />;
+                })()}
               </div>
               <div>
                 <div className="font-semibold text-foreground text-sm">{cat.name}</div>
@@ -171,14 +216,20 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            {!cat.isDefault && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => startEdit(cat)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              >
+                <Pencil className="size-4" />
+              </button>
               <button
                 onClick={() => handleDelete(cat._id)}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="size-4" />
               </button>
-            )}
+            </div>
           </div>
         ))}
       </div>
