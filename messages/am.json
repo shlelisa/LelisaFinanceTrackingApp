@@ -447,5 +447,16 @@
     "end_date": "የመጨረሻ ቀን",
     "spent": "የተወጣ",
     "remaining": "ቀሪ"
+  },
+  "favorites": {
+    "title": "ተወዳጆች",
+    "subtitle": "በአንድ መታ መመዝገብ",
+    "add_new": "አዲስ ጨምር",
+    "logged": "{name} ተመዝግቧል!",
+    "empty": "እስካሁን ተወዳጆች የሉም።",
+    "empty_hint": "በተደጋጋሚ የሚመዘገቧቸውን ወጪዎች ተወዳጆች ያድርጉ።",
+    "vs_last_month": "ከያዝነው ወር ጋር ሲነጻጸር",
+    "delete_title": "ተወዳጅ አስወግድ",
+    "delete_message": "\"{name}\" ከተወዳጆችዎ ይወገድ? ምንም ግብይቶች አይሰረዙም።"
   }
 }

@@ -42,9 +42,7 @@ export default function AccountsPage() {
     }
   };
 
-  const totalBalanceUSD = accounts
-    .filter((a) => a.currency === "USD")
-    .reduce((sum, a) => sum + a.balance, 0);
+  const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
 
   return (
     <div className="space-y-6">
@@ -74,7 +72,7 @@ export default function AccountsPage() {
           {t("accounts.net_worth")}
         </div>
         <div className="mt-2 text-3xl font-black tracking-tight text-foreground">
-          <Money amount={totalBalanceUSD} currency="USD" />
+          <Money amount={totalBalance} />
         </div>
       </div>
 

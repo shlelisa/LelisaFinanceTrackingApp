@@ -427,5 +427,16 @@
     "end_date": "End Date",
     "spent": "Spent",
     "remaining": "Remaining"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "subtitle": "1-Tap Quick Add",
+    "add_new": "Add New",
+    "logged": "{name} logged!",
+    "empty": "No favorites yet.",
+    "empty_hint": "Add favorites for expenses you log often.",
+    "vs_last_month": "Compared to last month in this category",
+    "delete_title": "Remove favorite",
+    "delete_message": "Remove \"{name}\" from your favorites? This won't delete any transactions."
   }
 }

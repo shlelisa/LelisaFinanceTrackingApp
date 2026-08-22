@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addStoredAccount, updateStoredAccount } from "@/lib/storage/localStorage";
 import type { Account, AccountType } from "@/lib/types/account";
 import { CURRENCIES } from "@/lib/constants";
+import { getPreferredCurrency } from "@/lib/currency";
 import { X, Wallet, Building2, CreditCard, Smartphone, Landmark } from "lucide-react";
 
 interface AccountFormProps {
@@ -26,7 +27,7 @@ export default function AccountForm({ account, onClose, onSuccess }: AccountForm
   const [name, setName] = useState(account?.name || "");
   const [type, setType] = useState<AccountType>(account?.type || "cash");
   const [balance, setBalance] = useState(account?.balance !== undefined ? String(account.balance) : "0");
-  const [currency, setCurrency] = useState(account?.currency || "USD");
+  const [currency, setCurrency] = useState(account?.currency || getPreferredCurrency());
   const [color, setColor] = useState(account?.color || "#3b82f6");
   const [error, setError] = useState("");
 

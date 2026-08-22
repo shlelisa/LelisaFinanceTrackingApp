@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AIEngineRegistry, type AIInsightItem } from "@/lib/ai/aiEngine";
 import { saveDerivedAICache, getDerivedAICache } from "@/lib/ai/aiDerivedStorage";
+import { onDataChanged } from "@/lib/storage/localStorage";
+import { useAppCurrency } from "@/hooks/useAppCurrency";
 import { Loader2, Lightbulb, AlertTriangle, CheckCircle2, Info, Sparkles } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -16,27 +18,40 @@ const severityConfig = {
 
 export default function AIInsights() {
   const { t } = useTranslation();
+  const { currency } = useAppCurrency();
   const [insights, setInsights] = useState<AIInsightItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadEngineInsights() {
       setIsLoading(true);
       try {
         const results = await AIEngineRegistry.getInstance().runAnalysis();
+        if (cancelled) return;
         setInsights(results);
         saveDerivedAICache(results);
       } catch (err) {
         console.error("AI Engine execution error", err);
+        if (cancelled) return;
         const cached = getDerivedAICache();
         if (cached) setInsights(cached.insights);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
     loadEngineInsights();
-  }, []);
+    const unsubscribe = onDataChanged(() => {
+      if (!cancelled) loadEngineInsights();
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [currency]);
 
   return (
     <Card className="shadow-xs">

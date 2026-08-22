@@ -1,22 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { computeFinancialHealthScore } from "@/lib/storage/financeLogic";
+import { useLiveData } from "@/hooks/useLiveData";
 import { Activity, ShieldCheck, TrendingUp, AlertTriangle, Lightbulb } from "lucide-react";
 
 export default function FinancialHealthCard() {
-  const [healthData, setHealthData] = useState<{
-    score: number;
-    savingsRate: number;
-    budgetAdherence: number;
-    expenseToIncomeRatio: number;
-    debtRatio: number;
-    tips: string[];
-  } | null>(null);
-
-  useEffect(() => {
-    setHealthData(computeFinancialHealthScore());
-  }, []);
+  const healthData = useLiveData(computeFinancialHealthScore);
 
   if (!healthData) return null;
 

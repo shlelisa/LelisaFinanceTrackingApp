@@ -71,7 +71,7 @@ export default function DebtPage() {
               {t("debt.money_lent")}
             </div>
             <div className="mt-1 text-2xl font-black text-emerald-600">
-              <Money amount={totalLent} currency="USD" />
+              <Money amount={totalLent} />
             </div>
           </div>
           <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
@@ -85,7 +85,7 @@ export default function DebtPage() {
               {t("debt.total_owed")}
             </div>
             <div className="mt-1 text-2xl font-black text-amber-600">
-              <Money amount={totalBorrowed} currency="USD" />
+              <Money amount={totalBorrowed} />
             </div>
           </div>
           <div className="flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">

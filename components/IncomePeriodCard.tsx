@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,7 @@ import {
 import {
   getIncomePeriod,
   saveIncomePeriod,
+  onDataChanged,
 } from "@/lib/storage/localStorage";
 import type { IncomePeriod } from "@/lib/types/incomePeriod";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -66,6 +67,10 @@ export default function IncomePeriodCard() {
   });
 
   const refresh = () => setPeriod(getIncomePeriod());
+
+  useEffect(() => {
+    return onDataChanged(refresh);
+  }, []);
 
   const handleSubmit = (values: IncomePeriodFormValues) => {
     saveIncomePeriod(values);

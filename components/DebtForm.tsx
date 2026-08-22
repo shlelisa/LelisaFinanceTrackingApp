@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addStoredDebt, updateStoredDebt } from "@/lib/storage/localStorage";
 import type { Debt, DebtType } from "@/lib/types/debt";
 import { CURRENCIES } from "@/lib/constants";
+import { getPreferredCurrency } from "@/lib/currency";
 import { X } from "lucide-react";
 
 interface DebtFormProps {
@@ -19,7 +20,7 @@ export default function DebtForm({ debt, onClose, onSuccess }: DebtFormProps) {
   const [remainingBalance, setRemainingBalance] = useState(
     debt?.remainingBalance !== undefined ? String(debt.remainingBalance) : ""
   );
-  const [currency, setCurrency] = useState(debt?.currency || "USD");
+  const [currency, setCurrency] = useState(debt?.currency || getPreferredCurrency());
   const [interestRate, setInterestRate] = useState(debt?.interestRate !== undefined ? String(debt.interestRate) : "");
   const [dueDate, setDueDate] = useState(debt?.dueDate || "");
   const [notes, setNotes] = useState(debt?.notes || "");

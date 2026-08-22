@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addStoredBill, updateStoredBill, getAllKnownCategoryNames } from "@/lib/storage/localStorage";
 import type { Bill } from "@/lib/types/bill";
 import { CURRENCIES } from "@/lib/constants";
+import { getPreferredCurrency } from "@/lib/currency";
 import { X } from "lucide-react";
 
 interface BillFormProps {
@@ -16,7 +17,7 @@ export default function BillForm({ bill, onClose, onSuccess }: BillFormProps) {
   const [name, setName] = useState(bill?.name || "");
   const [category, setCategory] = useState(bill?.category || "Utilities");
   const [amount, setAmount] = useState(bill?.amount !== undefined ? String(bill.amount) : "");
-  const [currency, setCurrency] = useState(bill?.currency || "USD");
+  const [currency, setCurrency] = useState(bill?.currency || getPreferredCurrency());
   const [dueDate, setDueDate] = useState(bill?.dueDate || new Date().toISOString().split("T")[0]);
   const [repeatMonthly, setRepeatMonthly] = useState(bill?.repeatMonthly ?? true);
   const [reminderEnabled, setReminderEnabled] = useState(bill?.reminderEnabled ?? true);

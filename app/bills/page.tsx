@@ -66,7 +66,7 @@ export default function BillsPage() {
             {t("bills.total_unpaid")}
           </div>
           <div className="mt-1 text-2xl font-black text-destructive">
-            <Money amount={totalUnpaid} currency="USD" />
+            <Money amount={totalUnpaid} />
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600">
