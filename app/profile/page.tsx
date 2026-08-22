@@ -210,13 +210,13 @@ export default function ProfilePage() {
         {/* Local Backup & Data Import / Export */}
         <Card>
           <CardHeader>
-            <CardTitle>Local Data Backup & Security</CardTitle>
+            <CardTitle>{t("profile.backup_security")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Export App Data</h4>
-                <p className="text-xs text-muted-foreground">Download a complete JSON backup of transactions, budgets, goals, and accounts.</p>
+                <h4 className="text-sm font-semibold text-foreground">{t("profile.export_data")}</h4>
+                <p className="text-xs text-muted-foreground">{t("profile.export_data_subtext")}</p>
               </div>
               <Button
                 variant="outline"
@@ -230,17 +230,17 @@ export default function ProfilePage() {
                   a.download = `lelisafin_backup_${new Date().toISOString().slice(0, 10)}.json`;
                   a.click();
                   URL.revokeObjectURL(url);
-                  toast.success("JSON Backup downloaded successfully!");
+                  toast.success(t("profile.export_success"));
                 }}
               >
-                Export JSON Backup
+                {t("profile.export_json")}
               </Button>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Import Backup Data</h4>
-                <p className="text-xs text-muted-foreground">Restore your app state from a previously exported JSON backup file.</p>
+                <h4 className="text-sm font-semibold text-foreground">{t("profile.import_data")}</h4>
+                <p className="text-xs text-muted-foreground">{t("profile.import_data_subtext")}</p>
               </div>
               <label className="cursor-pointer">
                 <input
@@ -254,10 +254,10 @@ export default function ProfilePage() {
                       reader.onload = (event) => {
                         try {
                           importFullBackupJSON(event.target?.result as string);
-                          toast.success("Data successfully imported! Reloading...");
+                          toast.success(t("profile.import_success"));
                           setTimeout(() => window.location.reload(), 1000);
                         } catch (err: any) {
-                          toast.error(err.message || "Failed to import backup");
+                          toast.error(err.message || t("profile.import_error"));
                         }
                       };
                       reader.readAsText(file);
@@ -265,7 +265,7 @@ export default function ProfilePage() {
                   }}
                 />
                 <span className="inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted">
-                  Import JSON File
+                  {t("profile.import_json")}
                 </span>
               </label>
             </div>

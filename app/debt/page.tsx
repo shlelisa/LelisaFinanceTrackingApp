@@ -5,9 +5,11 @@ import { getStoredDebts, deleteStoredDebt, updateStoredDebt } from "@/lib/storag
 import type { Debt } from "@/lib/types/debt";
 import DebtForm from "@/components/DebtForm";
 import Money from "@/components/Money";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Plus, HandCoins, Landmark, ArrowUpRight, ArrowDownLeft, Trash2, Edit2, Check } from "lucide-react";
 
 export default function DebtPage() {
+  const { t } = useTranslation();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
@@ -21,7 +23,7 @@ export default function DebtPage() {
   }, []);
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this debt record?")) {
+    if (confirm(t("debt.delete_confirm"))) {
       deleteStoredDebt(id);
       loadDebts();
     }
@@ -44,9 +46,9 @@ export default function DebtPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Debt & Loans</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("debt.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Keep track of money borrowed from others, money lent out, and bank loans.
+            {t("debt.subtitle")}
           </p>
         </div>
         <button
@@ -57,7 +59,7 @@ export default function DebtPage() {
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
         >
           <Plus className="size-4" />
-          Add Record
+          {t("debt.add")}
         </button>
       </div>
 
@@ -66,7 +68,7 @@ export default function DebtPage() {
         <div className="rounded-xl border bg-card p-5 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Money Lent Out (Owed To You)
+              {t("debt.money_lent")}
             </div>
             <div className="mt-1 text-2xl font-black text-emerald-600">
               <Money amount={totalLent} currency="USD" />
@@ -80,7 +82,7 @@ export default function DebtPage() {
         <div className="rounded-xl border bg-card p-5 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Total Owed / Loans
+              {t("debt.total_owed")}
             </div>
             <div className="mt-1 text-2xl font-black text-amber-600">
               <Money amount={totalBorrowed} currency="USD" />
@@ -125,7 +127,7 @@ export default function DebtPage() {
                         isLent ? "text-emerald-600" : "text-amber-600"
                       }`}
                     >
-                      {d.type === "lent" ? "Money Lent" : d.type === "loan" ? "Bank Loan" : "Money Borrowed"}
+                      {d.type === "lent" ? t("debt.type_lent") : d.type === "loan" ? t("debt.type_loan") : t("debt.type_borrowed")}
                     </span>
                   </div>
                 </div>
@@ -151,13 +153,13 @@ export default function DebtPage() {
 
               <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-3 text-xs">
                 <div>
-                  <span className="text-muted-foreground">Original Total:</span>
+                  <span className="text-muted-foreground">{t("debt.original_total")}</span>
                   <div className="font-semibold text-foreground">
                     <Money amount={d.totalAmount} currency={d.currency} />
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Remaining:</span>
+                  <span className="text-muted-foreground">{t("debt.remaining")}</span>
                   <div className={`font-bold ${isSettled ? "text-muted-foreground" : "text-foreground"}`}>
                     <Money amount={d.remainingBalance} currency={d.currency} />
                   </div>
@@ -172,7 +174,7 @@ export default function DebtPage() {
                     onClick={() => handleMarkSettled(d)}
                     className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10"
                   >
-                    <Check className="size-3.5" /> Mark Settled
+                    <Check className="size-3.5" /> {t("debt.mark_settled")}
                   </button>
                 </div>
               )}
@@ -182,7 +184,7 @@ export default function DebtPage() {
 
         {debts.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-            No debt or loan records created yet.
+            {t("debt.no_records")}
           </div>
         )}
       </div>

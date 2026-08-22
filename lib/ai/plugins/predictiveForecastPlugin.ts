@@ -1,5 +1,6 @@
 import type { AIPlugin, AIInsightItem } from "../aiEngine";
 import type { FinancialAIContext } from "../aiContextProviders";
+import { formatCurrencyExact } from "../../currency";
 
 export class PredictiveForecastPlugin implements AIPlugin {
   id = "predictive-forecast-plugin";
@@ -17,7 +18,7 @@ export class PredictiveForecastPlugin implements AIPlugin {
           id: `goal_achieved_${g.name}`,
           type: "savings",
           title: "Goal Achieved!",
-          message: `Congratulations! You have reached 100% of your **${g.name}** target ($${g.target}).`,
+          message: `Congratulations! You have reached 100% of your **${g.name}** target (${formatCurrencyExact(g.target, ctx.currency)}).`,
           severity: "success",
           actionableLink: "/goals",
         });

@@ -1,6 +1,8 @@
 import type { AIPlugin, AIInsightItem } from "../aiEngine";
 import { getFullAIContext, type FinancialAIContext } from "../aiContextProviders";
 import { getStoredDebts, getStoredBills, getStoredCategories, getStoredTransactions } from "../../storage/localStorage";
+import { getSpendForCategory, monthRange } from "../../storage/financeLogic";
+import { formatCurrencyExact } from "../../currency";
 
 export interface ChatMessage {
   id: string;
@@ -21,6 +23,8 @@ export class ChatbotPlugin implements AIPlugin {
 
   public async askQuestion(question: string, context?: FinancialAIContext): Promise<string> {
     const ctx = context || getFullAIContext();
+    const fmt = (amount: number, currency?: string) =>
+      formatCurrencyExact(amount, currency || ctx.currency);
     const q = question.toLowerCase().trim();
 
     // 0. User Profile & Phone Number Query
@@ -43,18 +47,18 @@ export class ChatbotPlugin implements AIPlugin {
 
       if (lentList.length > 0) {
         const totalLent = lentList.reduce((s, d) => s + d.remainingBalance, 0);
-        msg += `💰 **Money Lent To Others ($${totalLent.toFixed(2)}):**\n`;
+        msg += `💰 **Money Lent To Others (${fmt(totalLent)}):**\n`;
         lentList.forEach((d) => {
-          msg += `• **${d.person}**: $${d.remainingBalance.toFixed(2)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
+          msg += `• **${d.person}**: ${fmt(d.remainingBalance, d.currency)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
         });
         msg += "\n";
       }
 
       if (borrowedList.length > 0) {
         const totalBorrowed = borrowedList.reduce((s, d) => s + d.remainingBalance, 0);
-        msg += `⚠️ **Money You Borrowed ($${totalBorrowed.toFixed(2)}):**\n`;
+        msg += `⚠️ **Money You Borrowed (${fmt(totalBorrowed)}):**\n`;
         borrowedList.forEach((d) => {
-          msg += `• **${d.person}**: $${d.remainingBalance.toFixed(2)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
+          msg += `• **${d.person}**: ${fmt(d.remainingBalance, d.currency)} (Due: ${d.dueDate ? new Date(d.dueDate).toLocaleDateString() : "No date"})\n`;
         });
       }
 
@@ -74,23 +78,24 @@ export class ChatbotPlugin implements AIPlugin {
       }
 
       const totalUnpaid = unpaid.reduce((s, b) => s + b.amount, 0);
-      let msg = `📅 **Upcoming & Unpaid Bills ($${totalUnpaid.toFixed(2)}):**\n\n`;
+      let msg = `📅 **Upcoming & Unpaid Bills (${fmt(totalUnpaid)}):**\n\n`;
       unpaid.forEach((b) => {
-        msg += `• **${b.name}** (${b.category}): $${b.amount.toFixed(2)} — Due: ${b.dueDate ? new Date(b.dueDate).toLocaleDateString() : "Pending"}\n`;
+        msg += `• **${b.name}** (${b.category}): ${fmt(b.amount, b.currency)} — Due: ${b.dueDate ? new Date(b.dueDate).toLocaleDateString() : "Pending"}\n`;
       });
       return msg;
     }
 
     // 3. Dynamic Category / Merchant Lookup
     const allCategories = getStoredCategories().map((c) => c.name.toLowerCase());
-    const matchedCategory = allCategories.find((catName) => q.includes(catName));
+    const matchedCategory = allCategories.find((catName) => catName && q.includes(catName));
 
     if (matchedCategory) {
-      const breakdown = ctx.transactionVelocity.expenseCategoryBreakdown;
-      const matchedKey = Object.keys(breakdown).find((k) => k.toLowerCase() === matchedCategory);
-      const spent = matchedKey ? breakdown[matchedKey] : 0;
-
-      return `📊 Dynamic Lookup for **${matchedCategory.toUpperCase()}**:\nYou have spent **$${spent.toFixed(2)}** in this category this month.`;
+      const spentThisMonth = getSpendForCategory(
+        getStoredTransactions(),
+        matchedCategory,
+        monthRange(0),
+      );
+      return `📊 Dynamic Lookup for **${matchedCategory.toUpperCase()}**:\nYou have spent **${fmt(spentThisMonth)}** in this category this month.`;
     }
 
     // Dynamic Merchant Lookup
@@ -98,10 +103,10 @@ export class ChatbotPlugin implements AIPlugin {
     const words = q.split(" ").filter((w) => w.length > 3 && !["much", "spent", "where", "what", "show", "tell", "about"].includes(w));
 
     for (const word of words) {
-      const matches = transactions.filter((t) => t.description.toLowerCase().includes(word));
+      const matches = transactions.filter((t) => t.type === "expense" && t.description.toLowerCase().includes(word));
       if (matches.length > 0) {
         const total = matches.reduce((s, t) => s + t.amount, 0);
-        return `🔍 Found **${matches.length}** transactions matching "${word}":\nTotal spent: **$${total.toFixed(2)}** across matching items.`;
+        return `🔍 Found **${matches.length}** expense${matches.length === 1 ? "" : "s"} matching "${word}":\nTotal spent: **${fmt(total)}** across matching items.`;
       }
     }
 
@@ -122,26 +127,26 @@ export class ChatbotPlugin implements AIPlugin {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
 
-      const topCatStr = topExpenseCategories.map(([cat, amt]) => `• **${cat}**: $${amt.toFixed(2)}`).join("\n");
+      const topCatStr = topExpenseCategories.map(([cat, amt]) => `• **${cat}**: ${fmt(amt)}`).join("\n");
 
       let adviceMsg = `🤖 **Dynamic AI Financial Advisor Response:**\n\n`;
 
       adviceMsg += `📊 **Real-Time Portfolio Analysis:**\n`;
-      adviceMsg += `• **Monthly Cash Flow:** $${totalIncome.toFixed(2)} (In) vs $${totalExpenses.toFixed(2)} (Out)\n`;
-      adviceMsg += `• **Net Monthly Surplus:** $${netSavings.toFixed(2)} (${savingsRate}% rate)\n\n`;
+      adviceMsg += `• **Monthly Cash Flow:** ${fmt(totalIncome)} (In) vs ${fmt(totalExpenses)} (Out)\n`;
+      adviceMsg += `• **Net Monthly Surplus:** ${fmt(netSavings)} (${savingsRate}% rate)\n\n`;
 
       adviceMsg += `🔍 **Primary Expenditure Focus Areas:**\n${topCatStr || "• No major expense categories recorded."}\n\n`;
 
       adviceMsg += `💡 **Tailored AI Optimization Strategy:**\n`;
       if (savingsRate < 20) {
-        adviceMsg += `1. **Target 20% Net Savings:** Increase monthly surplus to at least **$${(totalIncome * 0.2).toFixed(2)}**.\n`;
+        adviceMsg += `1. **Target 20% Net Savings:** Increase monthly surplus to at least **${fmt(totalIncome * 0.2)}**.\n`;
       } else {
         adviceMsg += `1. **High Savings Rate Maintained:** You are saving **${savingsRate}%** of your total monthly cash flow.\n`;
       }
 
       if (topExpenseCategories.length > 0) {
         const topCat = topExpenseCategories[0];
-        adviceMsg += `2. **Optimize ${topCat[0]}:** Trimming **${topCat[0]}** by 15% recovers **$${(topCat[1] * 0.15).toFixed(2)}** per month.\n`;
+        adviceMsg += `2. **Optimize ${topCat[0]}:** Trimming **${topCat[0]}** by 15% recovers **${fmt(topCat[1] * 0.15)}** per month.\n`;
       }
 
       adviceMsg += `3. **Enforce Budget Guardrails:** Put hard monthly limits on your highest velocity categories in **Budgets**.\n`;
@@ -154,7 +159,7 @@ export class ChatbotPlugin implements AIPlugin {
     if (q.includes("budget") || q.includes("limit") || q.includes("over")) {
       const exceeded = ctx.budgetRisk.budgets.filter((b) => b.riskLevel === "exceeded");
       if (exceeded.length > 0) {
-        const categories = exceeded.map((b) => `• **${b.category}**: $${b.spent.toFixed(2)} spent / $${b.limit.toFixed(2)} limit`).join("\n");
+        const categories = exceeded.map((b) => `• **${b.category}**: ${fmt(b.spent)} spent / ${fmt(b.limit)} limit`).join("\n");
         return `⚠️ **Dynamic Alert: Exceeded Budgets Detected!**\n\n${categories}\n\nOverall budget adherence: **${ctx.budgetRisk.overallAdherenceRate}%**.`;
       }
       return `✅ All active budgets are currently **within healthy limits**. Overall adherence rate: **${ctx.budgetRisk.overallAdherenceRate}%**.`;
@@ -163,9 +168,9 @@ export class ChatbotPlugin implements AIPlugin {
     // 6. Dynamic Account Balances
     if (q.includes("account") || q.includes("bank") || q.includes("cash") || q.includes("balance") || q.includes("net worth")) {
       const list = ctx.liquidity.accountsSummary
-        .map((a) => `• **${a.name}** (${a.type}): $${a.balance.toFixed(2)} ${a.currency}`)
+        .map((a) => `• **${a.name}** (${a.type}): ${fmt(a.balance, a.currency)}`)
         .join("\n");
-      return `🏦 **Dynamic Accounts & Liquidity Overview:**\nTotal Net Worth: **$${ctx.liquidity.totalLiquidity.toFixed(2)}**\n\n${list}`;
+      return `🏦 **Dynamic Accounts & Liquidity Overview:**\nTotal Net Worth: **${fmt(ctx.liquidity.totalLiquidity)}**\n\n${list}`;
     }
 
     // 7. Dynamic Greetings
@@ -174,6 +179,6 @@ export class ChatbotPlugin implements AIPlugin {
     }
 
     // Dynamic Fallback with Live Metrics
-    return `🔍 **Dynamic Financial Summary:**\n• Total Liquidity: **$${ctx.liquidity.totalLiquidity.toFixed(2)}**\n• Total Income: **$${ctx.transactionVelocity.totalIncome.toFixed(2)}**\n• Total Expenses: **$${ctx.transactionVelocity.totalExpenses.toFixed(2)}**\n• Savings Rate: **${ctx.transactionVelocity.savingsRatePercentage}%**\n\nTry asking me: *"Who owes me money?"*, *"What bills are due?"*, *"How much did I spend on [Category/Merchant]?"*, or *"What do you suggest on saving?"*.`;
+    return `🔍 **Dynamic Financial Summary:**\n• Total Liquidity: **${fmt(ctx.liquidity.totalLiquidity)}**\n• Total Income: **${fmt(ctx.transactionVelocity.totalIncome)}**\n• Total Expenses: **${fmt(ctx.transactionVelocity.totalExpenses)}**\n• Savings Rate: **${ctx.transactionVelocity.savingsRatePercentage}%**\n\nTry asking me: *"Who owes me money?"*, *"What bills are due?"*, *"How much did I spend on [Category/Merchant]?"*, or *"What do you suggest on saving?"*.`;
   }
 }

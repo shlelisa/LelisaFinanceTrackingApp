@@ -1,4 +1,4 @@
-import type { Transaction, CreateTransactionInput, UpdateTransactionInput, TransactionFilters, FavoriteExpense } from "../types/transaction";
+import type { Transaction, TransactionType, CreateTransactionInput, UpdateTransactionInput, TransactionFilters, FavoriteExpense } from "../types/transaction";
 import type { Budget, BudgetPeriod } from "../types/budget";
 import type { CreateBudgetInput, UpdateBudgetInput } from "../validation/budget";
 import type { Goal } from "../types/goal";
@@ -9,7 +9,9 @@ import type { Account, CreateAccountInput, UpdateAccountInput } from "../types/a
 import type { Bill, CreateBillInput, UpdateBillInput } from "../types/bill";
 import type { Debt, CreateDebtInput, UpdateDebtInput } from "../types/debt";
 import type { CustomCategory, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
+import type { IncomePeriod, CreateIncomePeriodInput } from "../types/incomePeriod";
 import type { User, AuthResponse } from "../types/api";
+import { getPreferredCurrency } from "../currency";
 
 const KEYS = {
   TRANSACTIONS: "pft_offline_transactions",
@@ -21,6 +23,7 @@ const KEYS = {
   DEBTS: "pft_offline_debts",
   CATEGORIES: "pft_offline_categories",
   FAVORITES: "pft_offline_favorites",
+  INCOME_PERIOD: "pft_offline_income_period",
   EXCHANGE_RATES: "pft_offline_exchange_rates",
   PIN: "pft_security_pin",
   USER: "auth_user",
@@ -59,6 +62,33 @@ function setItem<T>(key: string, value: T): void {
   } catch (e) {
     console.error(`Error writing ${key} to localStorage`, e);
   }
+}
+
+export const DATA_CHANGED_EVENT = "pft:data-changed";
+
+export type DataChangedEntity =
+  | "transactions"
+  | "budgets"
+  | "goals"
+  | "recurring"
+  | "accounts"
+  | "bills"
+  | "debts"
+  | "categories"
+  | "favorites"
+  | "income_period"
+  | "exchange_rates";
+
+export function emitDataChanged(entity: DataChangedEntity): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(DATA_CHANGED_EVENT, { detail: { entity } }));
+}
+
+export function onDataChanged(listener: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handler = () => listener();
+  window.addEventListener(DATA_CHANGED_EVENT, handler);
+  return () => window.removeEventListener(DATA_CHANGED_EVENT, handler);
 }
 
 // Initial Seed Data for first run
@@ -110,7 +140,7 @@ function initializeSeedData() {
         amount: 450,
         currency: "USD",
         originalAmount: 450,
-        category: "Food & Dining",
+        category: "Food",
         description: "Supermarket & Groceries",
         date: new Date(today.getFullYear(), today.getMonth(), 5).toISOString(),
         createdAt: nowISO,
@@ -165,7 +195,7 @@ function initializeSeedData() {
       {
         _id: generateId(),
         userId: "local_user_1",
-        category: "Food & Dining",
+        category: "Food",
         period: "monthly",
         limitAmount: 600,
         spent: 450,
@@ -393,7 +423,7 @@ function initializeSeedData() {
       { _id: "cat_1", userId: "local_user_1", name: "Salary", type: "income", color: "#10b981", icon: "Briefcase", isDefault: true, createdAt: nowISO },
       { _id: "cat_2", userId: "local_user_1", name: "Business", type: "income", color: "#06b6d4", icon: "Building", isDefault: true, createdAt: nowISO },
       { _id: "cat_3", userId: "local_user_1", name: "Gift", type: "income", color: "#ec4899", icon: "Gift", isDefault: true, createdAt: nowISO },
-      { _id: "cat_4", userId: "local_user_1", name: "Food & Dining", type: "expense", color: "#f59e0b", icon: "Utensils", isDefault: true, createdAt: nowISO },
+      { _id: "cat_4", userId: "local_user_1", name: "Food", type: "expense", color: "#f59e0b", icon: "Utensils", isDefault: true, createdAt: nowISO },
       { _id: "cat_5", userId: "local_user_1", name: "Transportation", type: "expense", color: "#3b82f6", icon: "Car", isDefault: true, createdAt: nowISO },
       { _id: "cat_6", userId: "local_user_1", name: "Shopping", type: "expense", color: "#a855f7", icon: "ShoppingBag", isDefault: true, createdAt: nowISO },
       { _id: "cat_7", userId: "local_user_1", name: "Utilities", type: "expense", color: "#ef4444", icon: "Zap", isDefault: true, createdAt: nowISO },
@@ -406,12 +436,68 @@ function initializeSeedData() {
 
   if (!localStorage.getItem(KEYS.FAVORITES)) {
     const initialFavorites: FavoriteExpense[] = [
-      { _id: "fav_1", name: "Coffee", amount: 4.5, category: "Food & Dining", icon: "Coffee", color: "#f59e0b" },
+      { _id: "fav_1", name: "Coffee", amount: 4.5, category: "Food", icon: "Coffee", color: "#f59e0b" },
       { _id: "fav_2", name: "Taxi Ride", amount: 15, category: "Transportation", icon: "Car", color: "#3b82f6" },
-      { _id: "fav_3", name: "Quick Lunch", amount: 12, category: "Food & Dining", icon: "Utensils", color: "#10b981" },
+      { _id: "fav_3", name: "Quick Lunch", amount: 12, category: "Food", icon: "Utensils", color: "#10b981" },
     ];
     setItem(KEYS.FAVORITES, initialFavorites);
   }
+
+  refreshStaleSeedTransactions();
+}
+
+// Signatures of the original demo transactions so we can keep them rolling into the current month.
+const SEED_TX_SIGNATURES: Array<{
+  userId: string;
+  type: TransactionType;
+  amount: number;
+  category: string;
+  description: string;
+}> = [
+  { userId: "local_user_1", type: "income", amount: 3500, category: "Salary", description: "Monthly Salary Deposit" },
+  { userId: "local_user_1", type: "expense", amount: 450, category: "Food", description: "Supermarket & Groceries" },
+  { userId: "local_user_1", type: "expense", amount: 120, category: "Utilities", description: "Electricity & Water Bill" },
+  { userId: "local_user_1", type: "expense", amount: 85, category: "Entertainment", description: "Streaming Services & Cinema" },
+  { userId: "local_user_1", type: "expense", amount: 60, category: "Transportation", description: "Gas & Parking" },
+];
+
+// Re-dates the original demo transactions into the current month so seeded budgets
+// (monthly spent calculations) don't silently drop to zero after the seed month passes.
+function refreshStaleSeedTransactions(): void {
+  if (typeof window === "undefined") return;
+  const transactions = getItem<Transaction[]>(KEYS.TRANSACTIONS, []);
+  if (transactions.length === 0) return;
+
+  const now = new Date();
+
+  const matches = SEED_TX_SIGNATURES.map((sig) =>
+    transactions.find(
+      (t) =>
+        t.userId === sig.userId &&
+        t.type === sig.type &&
+        t.amount === sig.amount &&
+        t.category === sig.category &&
+        t.description === sig.description
+    )
+  );
+  if (matches.some((m) => !m)) return;
+
+  const allCurrentMonth = matches.every((m) => {
+    const d = new Date(m!.date);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  if (allCurrentMonth) return;
+
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  matches.forEach((m) => {
+    const d = new Date(m!.date);
+    const day = Math.min(d.getDate(), lastDayOfMonth);
+    m!.date = new Date(now.getFullYear(), now.getMonth(), day).toISOString();
+    m!.updatedAt = new Date().toISOString();
+  });
+
+  setItem(KEYS.TRANSACTIONS, transactions);
 }
 
 // Auto-run seed data initialization
@@ -451,6 +537,7 @@ function getCurrentUserContext(): User {
 // --- TRANSACTIONS STORAGE WITH ROLE ISOLATION & ADMIN TARGET FILTER ---
 export function getStoredTransactions(filters?: TransactionFilters): Transaction[] {
   initializeSeedData();
+  ensureCategoryConsolidation();
   let list: Transaction[] = getItem(KEYS.TRANSACTIONS, []);
   const currentUser = getCurrentUserContext();
 
@@ -512,7 +599,7 @@ export function saveStoredTransaction(input: CreateTransactionInput): Transactio
     userId: currentUser.id,
     type: input.type,
     amount: input.amount,
-    currency: input.currency || "USD",
+    currency: input.currency || getPreferredCurrency(),
     originalAmount: input.amount,
     category: input.category,
     description: input.description,
@@ -529,6 +616,7 @@ export function saveStoredTransaction(input: CreateTransactionInput): Transactio
   allList.unshift(newTx);
   setItem(KEYS.TRANSACTIONS, allList);
   recalculateBudgets();
+  emitDataChanged("transactions");
 
   // Adjust account balance if linked
   if (input.accountId) {
@@ -565,6 +653,7 @@ export function updateStoredTransaction(id: string, input: UpdateTransactionInpu
   allList[idx] = updated;
   setItem(KEYS.TRANSACTIONS, allList);
   recalculateBudgets();
+  emitDataChanged("transactions");
   return updated;
 }
 
@@ -573,11 +662,13 @@ export function deleteStoredTransaction(id: string): void {
   allList = allList.filter((t) => t._id !== id);
   setItem(KEYS.TRANSACTIONS, allList);
   recalculateBudgets();
+  emitDataChanged("transactions");
 }
 
 // --- BUDGETS STORAGE WITH ROLE ISOLATION ---
 export function getStoredBudgets(): Budget[] {
   initializeSeedData();
+  ensureCategoryConsolidation();
   const allBudgets: Budget[] = getItem(KEYS.BUDGETS, []);
   const currentUser = getCurrentUserContext();
 
@@ -592,13 +683,82 @@ export function getStoredBudgets(): Budget[] {
   return recomputed.filter((b) => b.userId === currentUser.id);
 }
 
+// --- INCOME PERIOD STORAGE ---
+// Lets a user set an income amount for a date range; every expense inside that
+// range is deducted from the income and shown as remaining spendable income.
+function isDateInRange(dateStr: string, startStr: string, endStr: string): boolean {
+  const d = new Date(dateStr).getTime();
+  return d >= new Date(startStr).getTime() && d <= new Date(endStr).getTime();
+}
+
+export function getIncomePeriod(): IncomePeriod | null {
+  initializeSeedData();
+  ensureCategoryConsolidation();
+  const currentUser = getCurrentUserContext();
+  const list = getItem<IncomePeriod[]>(KEYS.INCOME_PERIOD, []);
+  const stored = list.find((p) => p.userId === currentUser.id);
+  if (!stored) return null;
+
+  const spent = getStoredTransactions()
+    .filter(
+      (t) =>
+        t.type === "expense" &&
+        isDateInRange(t.date, stored.startDate, stored.endDate)
+    )
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  return {
+    ...stored,
+    spent,
+    remaining: stored.amount - spent,
+  };
+}
+
+export function saveIncomePeriod(input: CreateIncomePeriodInput): IncomePeriod {
+  const currentUser = getCurrentUserContext();
+  const list = getItem<IncomePeriod[]>(KEYS.INCOME_PERIOD, []);
+  const now = new Date().toISOString();
+  const existing = list.find((p) => p.userId === currentUser.id);
+
+  if (existing) {
+    existing.amount = input.amount;
+    existing.startDate = new Date(input.startDate).toISOString();
+    existing.endDate = new Date(input.endDate).toISOString();
+    existing.updatedAt = now;
+    setItem(KEYS.INCOME_PERIOD, list);
+  } else {
+    list.push({
+      _id: generateId(),
+      userId: currentUser.id,
+      amount: input.amount,
+      startDate: new Date(input.startDate).toISOString(),
+      endDate: new Date(input.endDate).toISOString(),
+      spent: 0,
+      remaining: input.amount,
+      createdAt: now,
+      updatedAt: now,
+    });
+    setItem(KEYS.INCOME_PERIOD, list);
+  }
+
+  emitDataChanged("income_period");
+  return getIncomePeriod()!;
+}
+
 const LEGACY_CATEGORY_ALIASES: Record<string, string> = {
-  food: "food & dining",
+  food: "food",
+  "food & dining": "food",
+  "food and dining": "food",
+  foodanddining: "food",
   houserent: "rent",
+  "house rent": "rent",
+  rent: "rent",
   mobiledata: "utilities",
   "mobile data": "utilities",
   "mobile data & internet": "utilities",
+  utilities: "utilities",
   income: "salary",
+  salary: "salary",
 };
 
 export function normalizeCategory(name: string): string {
@@ -608,22 +768,86 @@ export function normalizeCategory(name: string): string {
 }
 
 const CATEGORY_CANONICAL_NAMES: Record<string, string> = {
-  food: "Food & Dining",
-  "food & dining": "Food & Dining",
-  houserent: "Rent",
+  food: "Food",
+  "food & dining": "Food",
+  "food and dining": "Food",
   rent: "Rent",
+  houserent: "Rent",
+  "house rent": "Rent",
+  utilities: "Utilities",
   mobiledata: "Utilities",
   "mobile data": "Utilities",
   "mobile data & internet": "Utilities",
-  utilities: "Utilities",
-  income: "Salary",
   salary: "Salary",
+  income: "Salary",
 };
 
 export function canonicalCategoryName(name: string): string {
   if (!name) return "Other";
   const key = name.trim().toLowerCase().replace(/\s+/g, " ");
   return CATEGORY_CANONICAL_NAMES[key] || name;
+}
+
+// One-time migration: collapse redundant category spellings to a single canonical name
+// (e.g. "Food & Dining" / "Food and Dining" -> "Food") across every stored record.
+let categoryConsolidationDone = false;
+
+function consolidateCategoryNames(): void {
+  if (typeof window === "undefined") return;
+
+  const canonical = (name?: string): string | undefined =>
+    name ? canonicalCategoryName(name) : name;
+
+  const renameByName = (list: CustomCategory[]): boolean => {
+    let changed = false;
+    list.forEach((c) => {
+      const next = canonical(c.name);
+      if (next && next !== c.name) {
+        c.name = next;
+        changed = true;
+      }
+    });
+    return changed;
+  };
+
+  const renameByCategory = <T extends { category?: string }>(list: T[]): boolean => {
+    let changed = false;
+    list.forEach((item) => {
+      const next = canonical(item.category);
+      if (next && next !== item.category) {
+        item.category = next;
+        changed = true;
+      }
+    });
+    return changed;
+  };
+
+  const categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
+  if (renameByName(categories)) setItem(KEYS.CATEGORIES, categories);
+
+  const transactions = getItem<Transaction[]>(KEYS.TRANSACTIONS, []);
+  if (renameByCategory(transactions)) setItem(KEYS.TRANSACTIONS, transactions);
+
+  const budgets = getItem<Budget[]>(KEYS.BUDGETS, []);
+  if (renameByCategory(budgets)) setItem(KEYS.BUDGETS, budgets);
+
+  const goals = getItem<Goal[]>(KEYS.GOALS, []);
+  if (renameByCategory(goals)) setItem(KEYS.GOALS, goals);
+
+  const bills = getItem<Bill[]>(KEYS.BILLS, []);
+  if (renameByCategory(bills)) setItem(KEYS.BILLS, bills);
+
+  const recurring = getItem<RecurringTransaction[]>(KEYS.RECURRING, []);
+  if (renameByCategory(recurring)) setItem(KEYS.RECURRING, recurring);
+
+  const favorites = getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
+  if (renameByCategory(favorites)) setItem(KEYS.FAVORITES, favorites);
+}
+
+function ensureCategoryConsolidation(): void {
+  if (categoryConsolidationDone) return;
+  categoryConsolidationDone = true;
+  consolidateCategoryNames();
 }
 
 function startOfWeek(d: Date): Date {
@@ -1126,6 +1350,7 @@ export function deleteStoredDebt(id: string): void {
 // --- CATEGORIES CRUD ---
 export function getStoredCategories(): CustomCategory[] {
   initializeSeedData();
+  ensureCategoryConsolidation();
   const currentUser = getStoredUser();
   const categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
   return categories.filter((c) => c.userId === currentUser.id || c.isDefault);
@@ -1142,6 +1367,7 @@ export function addStoredCategory(input: CreateCategoryInput): CustomCategory {
   };
   categories.push(newCat);
   setItem(KEYS.CATEGORIES, categories);
+  emitDataChanged("categories");
   return newCat;
 }
 
@@ -1188,6 +1414,7 @@ export function updateStoredCategory(id: string, input: UpdateCategoryInput): Cu
     setItem(KEYS.GOALS, goals);
     setItem(KEYS.BILLS, bills);
     setItem(KEYS.RECURRING, recurring);
+    emitDataChanged("categories");
   }
 
   return updated;
@@ -1197,19 +1424,21 @@ export function deleteStoredCategory(id: string): void {
   let categories = getItem<CustomCategory[]>(KEYS.CATEGORIES, []);
   categories = categories.filter((c) => c._id !== id);
   setItem(KEYS.CATEGORIES, categories);
+  emitDataChanged("categories");
 }
 
 export function getAllKnownCategoryNames(type?: "income" | "expense"): string[] {
+  ensureCategoryConsolidation();
   const names = new Set<string>();
 
   getStoredCategories().forEach((c) => {
-    if (!type || c.type === type) names.add(c.name);
+    if (!type || c.type === type) names.add(canonicalCategoryName(c.name));
   });
 
   const collect = (items: { category?: string; type?: string }[]) =>
     items.forEach((item) => {
       if (item.category && (!type || !item.type || item.type === type)) {
-        names.add(item.category);
+        names.add(canonicalCategoryName(item.category));
       }
     });
 
@@ -1224,26 +1453,71 @@ export function getAllKnownCategoryNames(type?: "income" | "expense"): string[] 
 }
 
 // --- FAVORITES QUICK-ADD ---
+function migrateFavoritesOwner(favs: FavoriteExpense[]): FavoriteExpense[] {
+  const currentUser = getCurrentUserContext();
+  let changed = false;
+  const migrated = favs.map((f) => {
+    if (!f.userId) {
+      changed = true;
+      return { ...f, userId: currentUser.id };
+    }
+    return f;
+  });
+  if (changed) setItem(KEYS.FAVORITES, migrated);
+  return migrated;
+}
+
 export function getStoredFavorites(): FavoriteExpense[] {
   initializeSeedData();
-  return getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
+  const currentUser = getCurrentUserContext();
+  const favs = migrateFavoritesOwner(getItem<FavoriteExpense[]>(KEYS.FAVORITES, []));
+  if (currentUser.role === "admin") {
+    const targetId = getAdminTargetUserId();
+    if (targetId && targetId !== "all") {
+      return favs.filter((f) => f.userId === targetId);
+    }
+    return favs;
+  }
+  return favs.filter((f) => f.userId === currentUser.id);
 }
 
 export function addStoredFavorite(fav: Omit<FavoriteExpense, "_id">): FavoriteExpense {
-  const favs = getStoredFavorites();
+  const favs = getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
+  const currentUser = getCurrentUserContext();
   const newFav: FavoriteExpense = {
     _id: generateId(),
+    userId: currentUser.id,
     ...fav,
   };
   favs.push(newFav);
   setItem(KEYS.FAVORITES, favs);
+  emitDataChanged("favorites");
   return newFav;
 }
 
+export function updateStoredFavorite(id: string, input: Partial<Omit<FavoriteExpense, "_id">>): FavoriteExpense {
+  const favs = getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
+  const idx = favs.findIndex((f) => f._id === id);
+  if (idx === -1) throw new Error("Favorite not found");
+
+  const updated: FavoriteExpense = {
+    ...favs[idx],
+    ...input,
+    name: input.name?.trim() || favs[idx].name,
+    category: input.category?.trim() || favs[idx].category,
+    amount: typeof input.amount === "number" && Number.isFinite(input.amount) ? input.amount : favs[idx].amount,
+  };
+  favs[idx] = updated;
+  setItem(KEYS.FAVORITES, favs);
+  emitDataChanged("favorites");
+  return updated;
+}
+
 export function deleteStoredFavorite(id: string): void {
-  let favs = getStoredFavorites();
+  let favs = getItem<FavoriteExpense[]>(KEYS.FAVORITES, []);
   favs = favs.filter((f) => f._id !== id);
   setItem(KEYS.FAVORITES, favs);
+  emitDataChanged("favorites");
 }
 
 // --- PIN LOCK SECURITY ---

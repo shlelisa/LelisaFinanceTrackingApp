@@ -63,8 +63,10 @@ export type MonthlyReport = {
 
 export interface FavoriteExpense {
   _id: string;
+  userId?: string;
   name: string;
   amount: number;
+  currency?: string;
   category: string;
   icon?: string;
   color?: string;

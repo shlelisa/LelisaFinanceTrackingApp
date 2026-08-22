@@ -5,9 +5,11 @@ import { getStoredAccounts, deleteStoredAccount } from "@/lib/storage/localStora
 import type { Account } from "@/lib/types/account";
 import AccountForm from "@/components/AccountForm";
 import Money from "@/components/Money";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Plus, Wallet, Building2, CreditCard, Smartphone, Trash2, Edit2 } from "lucide-react";
 
 export default function AccountsPage() {
+  const { t } = useTranslation();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -21,7 +23,7 @@ export default function AccountsPage() {
   }, []);
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this account?")) {
+    if (confirm(t("accounts.delete_confirm"))) {
       deleteStoredAccount(id);
       loadAccounts();
     }
@@ -49,9 +51,9 @@ export default function AccountsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Accounts</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("accounts.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your physical cash, bank accounts, credit cards, and mobile wallets.
+            {t("accounts.subtitle")}
           </p>
         </div>
         <button
@@ -62,14 +64,14 @@ export default function AccountsPage() {
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
         >
           <Plus className="size-4" />
-          Add Account
+          {t("accounts.add")}
         </button>
       </div>
 
       {/* Net Worth Summary */}
       <div className="rounded-xl border bg-card p-6 shadow-xs">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Total Net Worth (USD Accounts)
+          {t("accounts.net_worth")}
         </div>
         <div className="mt-2 text-3xl font-black tracking-tight text-foreground">
           <Money amount={totalBalanceUSD} currency="USD" />
@@ -125,7 +127,7 @@ export default function AccountsPage() {
               </div>
 
               <div className="mt-6 border-t pt-3">
-                <div className="text-xs text-muted-foreground">Current Balance</div>
+                <div className="text-xs text-muted-foreground">{t("accounts.current_balance")}</div>
                 <div className="text-xl font-bold text-foreground">
                   <Money amount={acc.balance} currency={acc.currency} />
                 </div>
@@ -136,8 +138,7 @@ export default function AccountsPage() {
 
         {accounts.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-            No accounts created yet. Click "Add Account" to set up your cash, bank, or mobile money accounts.
-          </div>
+            {t("accounts.no_accounts")}          </div>
         )}
       </div>
 

@@ -1,5 +1,5 @@
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  "Food & Dining": ["starbucks", "mcdonalds", "burger", "pizza", "coffee", "restaurant", "cafe", "deli", "supermarket", "grocery", "bakery", "food", "lunch", "dinner", "breakfast", "kfc", "dominos"],
+  "Food": ["starbucks", "mcdonalds", "burger", "pizza", "coffee", "restaurant", "cafe", "deli", "supermarket", "grocery", "bakery", "food", "lunch", "dinner", "breakfast", "kfc", "dominos"],
   "Transportation": ["uber", "lyft", "taxi", "gas", "shell", "total", "petrol", "parking", "bus", "train", "metro", "airline", "flight", "car", "wash"],
   "Shopping": ["amazon", "ebay", "walmart", "target", "nike", "adidas", "zara", "h&m", "clothing", "shoes", "apple", "electronics"],
   "Utilities": ["electricity", "water", "internet", "comcast", "verizon", "ethio telecom", "wifi", "bill"],

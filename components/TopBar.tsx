@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 import UserDropdown from "./UserDropdown";
 import AdminUserSelector from "./AdminUserSelector";
 import VoiceTransactionModal from "./VoiceTransactionModal";
-import { Menu, Mic, Sparkles } from "lucide-react";
+import { Menu, Mic } from "lucide-react";
 
 export default function TopBar() {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [voiceOpen, setVoiceOpen] = useState(false);
   const isAuthPage = pathname === "/login" || pathname === "/register";
@@ -18,19 +20,19 @@ export default function TopBar() {
 
   // Formatting route title for mobile topbar
   const routeTitleMap: Record<string, string> = {
-    "/dashboard": "Dashboard",
-    "/accounts": "Accounts",
-    "/transactions": "Transactions",
-    "/bills": "Bills & Subscriptions",
-    "/debt": "Debt & Loans",
-    "/reports": "Reports",
-    "/budgets": "Budgets",
-    "/goals": "Savings Goals",
-    "/categories": "Categories",
-    "/recurring": "Recurring Items",
-    "/calendar": "Calendar",
-    "/notifications": "Notifications",
-    "/profile": "Profile & Settings",
+    "/dashboard": t("nav.dashboard"),
+    "/accounts": t("nav.accounts"),
+    "/transactions": t("nav.transactions"),
+    "/bills": t("nav.bills"),
+    "/debt": t("nav.debt"),
+    "/reports": t("nav.reports"),
+    "/budgets": t("nav.budgets"),
+    "/goals": t("nav.goals"),
+    "/categories": t("nav.categories"),
+    "/recurring": t("nav.recurring"),
+    "/calendar": t("nav.calendar"),
+    "/notifications": t("nav.notifications"),
+    "/profile": t("nav.profile"),
   };
 
   const title = routeTitleMap[pathname] || "LelisaFin";

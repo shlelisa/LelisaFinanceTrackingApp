@@ -4,14 +4,18 @@
   },
   "nav": {
     "dashboard": "ዳሽበርድ",
+    "accounts": "አካውንቶች",
     "transactions": "ኢልምም",
+    "bills": "ሂሳቦች እና ደንበኝነት",
+    "debt": "ዕዳ እና ብድር",
     "budgets": "በጀቶች",
-    "goals": "ዒላማዎች",
+    "goals": "የቁጠባ ዒላማዎች",
+    "categories": "ምድቦች",
     "recurring": "የሚደገመው",
     "reports": "ሪፖርቶች",
     "calendar": "ቀን መቁጠሪያ",
     "notifications": "ማሳወቂያዎች",
-    "profile": "ፕሮፋይል",
+    "profile": "ፕሮፋይል እና ቅንብሮች",
     "logout": "ውጣ",
     "settings": "ቅንብሮች"
   },
@@ -88,6 +92,44 @@
     "recent_transactions": "የቅርብ ጊዜ ኢልምም",
     "no_transactions": "እስካሁን ምንም ኢልምም የለም።",
     "add_transaction": "ኢልምም ጨርም"
+  },
+  "accounts": {
+    "title": "መለያዎች",
+    "subtitle": "የእጅ ገንዘብ፣ የባንክ መለያዎች፣ የክሬዲት ካርዶች እና የሞባይል ቦርሳዎችዎን ያስተዳድሩ።",
+    "add": "መለያ ጨምር",
+    "net_worth": "ጠቅላላ የተጣራ ግምት (USD መለያዎች)",
+    "current_balance": "የአሁኑ ሚዛን",
+    "no_accounts": "እስካሁን ምንም መለያ አልተፈጠረም። የእጅ ገንዘብ፣ የባንክ ወይም የሞባይል ገንዘብ መለያዎችን ለማዘጋጀት \"መለያ ጨምር\" ይጫኑ።",
+    "delete_confirm": "ይህን መለያ መሰረዝ እርግጠኛ ነዎት?"
+  },
+  "bills": {
+    "title": "ተደጋጋሚ ክፍያዎች",
+    "subtitle": "የኤሌክትሪክ፣ የውሃ፣ የበይነመረብ ወይም የኪራይ ቀነ-ገደቦችን አያምልጡ።",
+    "add": "ክፍያ ጨምር",
+    "total_unpaid": "ያልተከፈሉ ክፍያዎች ድምር",
+    "pending": "{count} በመጠባበቅ ላይ",
+    "due": "ቀነ-ገደብ {date}",
+    "monthly": "በወር",
+    "paid": "ተከፍሏል",
+    "overdue": "ጊዜው አልፏል",
+    "unpaid": "አልተከፈለም",
+    "no_bills": "እስካሁን ምንም ክፍያ አልተጨመረም። የኤሌክትሪክ፣ የውሃ፣ የበይነመረብ እና የኪራይ ክፍያዎችን እዚህ ይከታተሉ።",
+    "delete_confirm": "ይህን ክፍያ መሰረዝ እርግጠኛ ነዎት?"
+  },
+  "debt": {
+    "title": "ዕዳ እና ብድር",
+    "subtitle": "ከሌሎች የተበደሩትን ገንዘብ፣ ያበደሩትን እና የባንክ ብድሮችን ይከታተሉ።",
+    "add": "መዝገብ ጨምር",
+    "money_lent": "የተበደረ ገንዘብ (ለእርስዎ የሚከፈል)",
+    "total_owed": "ጠቅላላ ዕዳ / ብድር",
+    "type_lent": "ያበደሩት ገንዘብ",
+    "type_loan": "የባንክ ብድር",
+    "type_borrowed": "የተበደሩት ገንዘብ",
+    "original_total": "የመጀመሪያ ድምር:",
+    "remaining": "ቀሪ:",
+    "mark_settled": "የተፈታ ምልክት ያድርጉ",
+    "no_records": "እስካሁን ምንም የዕዳ ወይም የብድር መዝገብ አልተፈጠረም።",
+    "delete_confirm": "ይህን የዕዳ መዝገብ መሰረዝ እርግጠኛ ነዎት?"
   },
   "transaction": {
     "title": "ኢልምም",
@@ -267,7 +309,17 @@
     "currency_etb": "ETB (ብር)",
     "currency_usd": "USD ($)",
     "currency_eur": "EUR (€)",
-    "currency_gbp": "GBP (£)"
+    "currency_gbp": "GBP (£)",
+    "backup_security": "የሀገር ውስጥ ውሂብ ምትኬ እና ደህንነት",
+    "export_data": "የመተግበሪያ ውሂብ ያስላኩ",
+    "export_data_subtext": "የኢልምም፣ የበጀት፣ የግቦች እና የመለያዎች ሙሉ የJSON ምትኬን ያውርዱ።",
+    "export_json": "JSON ምትኬ ያስላኩ",
+    "export_success": "JSON ምትኬ በተሳካ ሁኔታ ወርዷል!",
+    "import_data": "ምትኬ ውሂብ ያስገቡ",
+    "import_data_subtext": "ከዚህ ቀደም ከተላከ የJSON ምትኬ ፋይል የመተግበሪያዎን ሁኔታ ይመልሱ።",
+    "import_json": "JSON ፋይል ያስገቡ",
+    "import_success": "ውሂብ በተሳካ ሁኔታ ገብቷል! እየጫነ ነው...",
+    "import_error": "ምትኬ ማስገባት አልተሳካም"
   },
   "change_password": {
     "current": "የአሁኑ የይለፍ ቃል",
@@ -354,6 +406,9 @@
     "goal_current_negative": "መጠን አሉታዊ ሊሆን ይችልም።",
     "recurring_amount_required": "እባክዎ መጠን ያስገቡ።",
     "recurring_amount_positive": "መጠን ከ 0 በላይ መሆን አለበት።",
+    "income_amount_required": "እባክዎ የገቢ መጠን ያስገቡ።",
+    "income_amount_positive": "ገቢ ከ 0 በላይ መሆን አለበት።",
+    "end_after_start": "የመጨረሻው ቀን ከመጀመሪያው ቀን በኋላ መሆን አለበት።",
     "date_format": "ቀን YYYY-MM-DD መሆን አለበት"
   },
   "categories": {
@@ -363,6 +418,34 @@
     "HouseRent": "የቤት ኪራይ",
     "MobileData": "ሞባይል ዳታ",
     "Entertainment": "መዝናኛ",
-    "Other": "ሌላ"
+    "Other": "ሌላ",
+    "title": "ምድቦች",
+    "subtitle": "የገቢ እና የወጪ ምድቦችን በብጁ ቀለሞች እና አዶዎች ያብጁ።",
+    "add": "ምድብ ጨምር",
+    "edit_title": "ምድብ አርትዕ",
+    "new_title": "አዲስ ምድብ",
+    "name": "ስም",
+    "name_placeholder": "ለምሳሌ ምዝገባዎች",
+    "type": "አይነት",
+    "expense": "ወጪ",
+    "income": "ገቢ",
+    "icon": "አዶ",
+    "theme_color": "ገጽታ ቀለም",
+    "cancel": "ሰርዝ",
+    "save_changes": "ለውጦችን አስቀምጥ",
+    "save": "ምድብ አስቀምጥ",
+    "delete_confirm": "ይህን ብጁ ምድብ መሰረዝ እርግጠኛ ነዎት?"
+  },
+  "incomePeriod": {
+    "title": "የገቢ ጊዜ ክፍል",
+    "set": "ገቢ አዘጋጅ",
+    "not_set": "ምንም የገቢ ጊዜ አልተዘጋጀም። የገቢ መጠን እና የቀን ክልል ያዘጋጁ ወጪዎችን በእሱ ላይ ለመከታተል።",
+    "set_period": "የገቢ ጊዜ አዘጋጅ",
+    "income": "ገቢ",
+    "amount": "የገቢ መጠን",
+    "start_date": "የመጀመሪያ ቀን",
+    "end_date": "የመጨረሻ ቀን",
+    "spent": "የተወጣ",
+    "remaining": "ቀሪ"
   }
 }

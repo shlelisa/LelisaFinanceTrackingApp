@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getStoredCategories, addStoredCategory, updateStoredCategory, deleteStoredCategory } from "@/lib/storage/localStorage";
 import type { CustomCategory } from "@/lib/types/category";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Plus, Trash2, Pencil, Tag, Utensils, Car, ShoppingBag, Zap, Home, Activity, Film, Briefcase, Building, Gift } from "lucide-react";
 
 const ICON_OPTIONS = [
@@ -36,6 +37,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 const COLORS = ["#10b981", "#3b82f6", "#ef4444", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4", "#64748b"];
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<CustomCategory[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CustomCategory | null>(null);
@@ -89,7 +91,7 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this custom category?")) {
+    if (confirm(t("categories.delete_confirm"))) {
       deleteStoredCategory(id);
       loadCategories();
     }
@@ -99,9 +101,9 @@ export default function CategoriesPage() {
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Categories</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("categories.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Customize income and expense categories with custom colors and icons.
+            {t("categories.subtitle")}
           </p>
         </div>
         <button
@@ -111,39 +113,39 @@ export default function CategoriesPage() {
           }}
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          <Plus className="size-4" /> Add Category
+          <Plus className="size-4" /> {t("categories.add")}
         </button>
       </div>
 
       {isAdding && (
         <form onSubmit={handleSave} className="rounded-xl border bg-card p-5 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-foreground">
-            {editingCategory ? "Edit Category" : "New Category"}
+            {editingCategory ? t("categories.edit_title") : t("categories.new_title")}
           </h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Name</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">{t("categories.name")}</label>
               <input
                 type="text"
-                placeholder="e.g. Subscriptions"
+                placeholder={t("categories.name_placeholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Type</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">{t("categories.type")}</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as any)}
                 className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
               >
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
+                <option value="expense">{t("categories.expense")}</option>
+                <option value="income">{t("categories.income")}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">Icon</label>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">{t("categories.icon")}</label>
               <select
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
@@ -159,7 +161,7 @@ export default function CategoriesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">Theme Color</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">{t("categories.theme_color")}</label>
             <div className="flex gap-2">
               {COLORS.map((c) => (
                 <button
@@ -181,13 +183,13 @@ export default function CategoriesPage() {
               onClick={resetForm}
               className="rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground"
             >
-              Cancel
+              {t("categories.cancel")}
             </button>
             <button
               type="submit"
               className="rounded-lg bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground"
             >
-              {editingCategory ? "Save Changes" : "Save Category"}
+              {editingCategory ? t("categories.save_changes") : t("categories.save")}
             </button>
           </div>
         </form>

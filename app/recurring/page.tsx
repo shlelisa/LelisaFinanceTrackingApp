@@ -14,8 +14,10 @@ import RecurringCard from "@/components/RecurringCard";
 import RecurringForm from "@/components/RecurringForm";
 import type { RecurringTransaction } from "@/lib/types/recurring";
 import type { RecurringFormValues } from "@/lib/validation/recurring";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function RecurringPage() {
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editItem, setEditItem] = useState<RecurringTransaction | null>(null);
 
@@ -60,22 +62,22 @@ export default function RecurringPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <RefreshCw className="size-6 text-primary" />
-            <h1 className="text-2xl font-semibold text-primary">Recurring Transactions</h1>
+            <h1 className="text-2xl font-semibold text-primary">{t("recurring.title")}</h1>
           </div>
           <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-1 size-4" /> Add Recurring
+            <Plus className="mr-1 size-4" /> {t("recurring.add")}
           </Button>
         </div>
 
         {isLoading ? (
-          <p>Loading recurring transactions...</p>
+          <p>{t("recurring.loading")}</p>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-20 text-muted-foreground">
             <RefreshCw className="size-12" />
-            <p className="text-lg">No recurring transactions</p>
-            <p>Set up recurring income or expenses like salary, rent, or subscriptions</p>
+            <p className="text-lg">{t("recurring.no_recurring")}</p>
+            <p>{t("recurring.no_recurring_subtext")}</p>
             <Button onClick={() => setFormOpen(true)}>
-              <Plus className="mr-1 size-4" /> Add Your First Recurring
+              <Plus className="mr-1 size-4" /> {t("recurring.add_first")}
             </Button>
           </div>
         ) : (

@@ -7,15 +7,15 @@ export interface ParsedVoiceCommand {
 }
 
 const CATEGORY_MAP: Record<string, string> = {
-  food: "Food & Dining",
-  lunch: "Food & Dining",
-  dinner: "Food & Dining",
-  breakfast: "Food & Dining",
-  coffee: "Food & Dining",
-  restaurant: "Food & Dining",
-  supermarket: "Food & Dining",
-  groceries: "Food & Dining",
-  pizza: "Food & Dining",
+  food: "Food",
+  lunch: "Food",
+  dinner: "Food",
+  breakfast: "Food",
+  coffee: "Food",
+  restaurant: "Food",
+  supermarket: "Food",
+  groceries: "Food",
+  pizza: "Food",
 
   transport: "Transportation",
   transportation: "Transportation",

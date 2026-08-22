@@ -12,7 +12,6 @@ import {
   Target,
   User,
   LogOut,
-  Menu,
   Trophy,
   RefreshCw,
   Bell,
@@ -24,19 +23,19 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Accounts", href: "/accounts", icon: Wallet },
-  { label: "Transactions", href: "/transactions", icon: CreditCard },
-  { label: "Bills & Subscriptions", href: "/bills", icon: Receipt },
-  { label: "Debt & Loans", href: "/debt", icon: HandCoins },
-  { label: "Budgets", href: "/budgets", icon: Target },
-  { label: "Savings Goals", href: "/goals", icon: Trophy },
-  { label: "Categories", href: "/categories", icon: Tags },
-  { label: "Reports", href: "/reports", icon: BarChart3 },
-  { label: "Recurring", href: "/recurring", icon: RefreshCw },
-  { label: "Calendar", href: "/calendar", icon: CalendarDays },
-  { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Profile & Settings", href: "/profile", icon: User },
+  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "accounts", href: "/accounts", icon: Wallet },
+  { key: "transactions", href: "/transactions", icon: CreditCard },
+  { key: "bills", href: "/bills", icon: Receipt },
+  { key: "debt", href: "/debt", icon: HandCoins },
+  { key: "budgets", href: "/budgets", icon: Target },
+  { key: "goals", href: "/goals", icon: Trophy },
+  { key: "categories", href: "/categories", icon: Tags },
+  { key: "reports", href: "/reports", icon: BarChart3 },
+  { key: "recurring", href: "/recurring", icon: RefreshCw },
+  { key: "calendar", href: "/calendar", icon: CalendarDays },
+  { key: "notifications", href: "/notifications", icon: Bell },
+  { key: "profile", href: "/profile", icon: User },
 ] as const;
 
 export default function Sidebar() {
@@ -114,7 +113,7 @@ export default function Sidebar() {
                   }`}
               >
                 <link.icon className="size-4" />
-                <span className="flex-1 text-left">{link.label}</span>
+                <span className="flex-1 text-left">{t(`nav.${link.key}`)}</span>
                 {link.href === "/notifications" && unreadCount > 0 && (
                   <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {unreadCount > 9 ? "9+" : unreadCount}

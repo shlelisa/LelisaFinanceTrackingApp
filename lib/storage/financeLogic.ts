@@ -1,29 +1,143 @@
-import type { DashboardSummary, MonthlyReport } from "../types/transaction";
-import { getStoredTransactions, getStoredBudgets, getStoredGoals, canonicalCategoryName } from "./localStorage";
+import type { DashboardSummary, MonthlyReport, Transaction, TransactionType } from "../types/transaction";
+import { getStoredTransactions, getStoredBudgets, getStoredGoals, getStoredFavorites, canonicalCategoryName } from "./localStorage";
+import { formatCurrencyExact, getAppCurrency } from "../currency";
+
+export interface PeriodRange {
+  start: number;
+  end: number;
+}
+
+export function monthRange(offsetFromNow = 0, reference = new Date()): PeriodRange {
+  const y = reference.getFullYear();
+  const m = reference.getMonth() + offsetFromNow;
+  const start = new Date(y, m, 1).getTime();
+  const end = new Date(y, m + 1, 0, 23, 59, 59, 999).getTime();
+  return { start, end };
+}
+
+export function isInRange(t: Transaction, range: PeriodRange): boolean {
+  const time = new Date(t.date).getTime();
+  return time >= range.start && time <= range.end;
+}
+
+export function sumByType(transactions: Transaction[], type: TransactionType): number {
+  return transactions
+    .filter((t) => t.type === type)
+    .reduce((sum, t) => sum + t.amount, 0);
+}
+
+export function getCategoryTotals(
+  transactions: Transaction[],
+  type: TransactionType,
+  range?: PeriodRange,
+): Record<string, number> {
+  const totals: Record<string, number> = {};
+  transactions.forEach((t) => {
+    if (t.type !== type) return;
+    if (range && !isInRange(t, range)) return;
+    const name = canonicalCategoryName(t.category) || "Other";
+    totals[name] = (totals[name] || 0) + t.amount;
+  });
+  return totals;
+}
+
+export function getSpendForCategory(transactions: Transaction[], category: string, range?: PeriodRange): number {
+  const target = canonicalCategoryName(category);
+  return transactions.reduce((sum, t) => {
+    if (t.type !== "expense") return sum;
+    if (range && !isInRange(t, range)) return sum;
+    if (canonicalCategoryName(t.category) !== target) return sum;
+    return sum + t.amount;
+  }, 0);
+}
+
+export function percentChange(current: number, previous: number): number | null {
+  if (!Number.isFinite(current) || !Number.isFinite(previous)) return null;
+  if (previous === 0) return current > 0 ? 100 : null;
+  return Math.round(((current - previous) / Math.abs(previous)) * 100);
+}
+
+export function estimateMonthlySavingsRate(): number {
+  const transactions = getStoredTransactions();
+  if (transactions.length === 0) return 0;
+  const net =
+    sumByType(transactions, "income") - sumByType(transactions, "expense");
+  const earliest = transactions.reduce(
+    (min, t) => Math.min(min, new Date(t.date).getTime()),
+    Date.now(),
+  );
+  const monthsElapsed = Math.max(
+    1,
+    (Date.now() - earliest) / (1000 * 60 * 60 * 24 * 30.44),
+  );
+  return net / monthsElapsed;
+}
+
+export interface CategoryPeriodComparison {
+  category: string;
+  currentTotal: number;
+  previousTotal: number;
+  changePct: number | null;
+}
+
+export function compareCategorySpend(
+  transactions: Transaction[],
+  category: string,
+  current: PeriodRange,
+  previous: PeriodRange,
+): CategoryPeriodComparison {
+  const name = canonicalCategoryName(category) || "Other";
+  const currentTotal = getSpendForCategory(transactions, name, current);
+  const previousTotal = getSpendForCategory(transactions, name, previous);
+  return {
+    category: name,
+    currentTotal,
+    previousTotal,
+    changePct: percentChange(currentTotal, previousTotal),
+  };
+}
+
+export interface FavoriteStat {
+  favoriteId: string;
+  category: string;
+  currentTotal: number;
+  previousTotal: number;
+  changePct: number | null;
+}
+
+export function computeFavoritesStats(): Record<string, FavoriteStat> {
+  const favorites = getStoredFavorites();
+  if (favorites.length === 0) return {};
+
+  const transactions = getStoredTransactions();
+  const thisMonth = monthRange(0);
+  const lastMonth = monthRange(-1);
+
+  const stats: Record<string, FavoriteStat> = {};
+  favorites.forEach((fav) => {
+    const comparison = compareCategorySpend(transactions, fav.category, thisMonth, lastMonth);
+    stats[fav._id] = {
+      favoriteId: fav._id,
+      category: comparison.category,
+      currentTotal: comparison.currentTotal,
+      previousTotal: comparison.previousTotal,
+      changePct: comparison.changePct,
+    };
+  });
+  return stats;
+}
 
 export function computeDashboardSummary(): DashboardSummary {
   const transactions = getStoredTransactions();
 
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpenses = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = sumByType(transactions, "income");
+  const totalExpenses = sumByType(transactions, "expense");
 
   const totalAccountBalance = totalIncome - totalExpenses;
 
   const recentTransactions = transactions.slice(0, 5);
 
-  // Group expenses by category
-  const expenseMap: Record<string, number> = {};
-  transactions
-    .filter((t) => t.type === "expense")
-    .forEach((t) => {
-      const name = canonicalCategoryName(t.category);
-      expenseMap[name] = (expenseMap[name] || 0) + t.amount;
-    });
+  const expenseMap = getCategoryTotals(transactions, "expense");
 
   const expenseBreakdown = Object.entries(expenseMap).map(([name, value]) => ({
     name,
@@ -53,7 +167,10 @@ export function computeMonthlyReport(year?: number): MonthlyReport {
     reportMap[m] = { income: 0, expense: 0 };
   }
 
-  const categoryMap: Record<string, number> = {};
+  const categoryMap = getCategoryTotals(
+    transactions.filter((t) => new Date(t.date).getFullYear() === targetYear),
+    "expense",
+  );
 
   transactions.forEach((t) => {
     const d = new Date(t.date);
@@ -63,8 +180,6 @@ export function computeMonthlyReport(year?: number): MonthlyReport {
         reportMap[m].income += t.amount;
       } else if (t.type === "expense") {
         reportMap[m].expense += t.amount;
-        const name = canonicalCategoryName(t.category);
-        categoryMap[name] = (categoryMap[name] || 0) + t.amount;
       }
     }
   });
@@ -75,8 +190,8 @@ export function computeMonthlyReport(year?: number): MonthlyReport {
     expense: reportMap[idx].expense,
   }));
 
-  const categoryBreakdown = Object.entries(categoryMap).map(([_id, total]) => ({
-    _id,
+  const categoryBreakdown = Object.entries(categoryMap).map(([name, total]) => ({
+    _id: name,
     total,
   }));
 
@@ -95,27 +210,13 @@ export function computeReportRange(startDate: string, endDate: string, groupBy: 
   const endD = endDate ? new Date(endDate) : new Date(Date.now() + 86400000);
   endD.setHours(23, 59, 59, 999);
 
-  const start = startD.getTime();
-  const end = endD.getTime();
+  const range: PeriodRange = { start: startD.getTime(), end: endD.getTime() };
 
-  const filtered = transactions.filter((t) => {
-    const time = new Date(t.date).getTime();
-    return time >= start && time <= end;
-  });
+  const filtered = transactions.filter((t) => isInRange(t, range));
 
-  const categoryMap: Record<string, number> = {};
-  let totalIncome = 0;
-  let totalExpenses = 0;
-
-  filtered.forEach((t) => {
-    if (t.type === "income") {
-      totalIncome += t.amount;
-    } else if (t.type === "expense") {
-      totalExpenses += t.amount;
-      const name = canonicalCategoryName(t.category);
-      categoryMap[name] = (categoryMap[name] || 0) + t.amount;
-    }
-  });
+  const categoryMap = getCategoryTotals(filtered, "expense");
+  let totalIncome = sumByType(filtered, "income");
+  let totalExpenses = sumByType(filtered, "expense");
 
   const trendMap: Record<string, { income: number; expense: number }> = {};
   filtered.forEach((t) => {
@@ -149,19 +250,8 @@ export function computeReportRange(startDate: string, endDate: string, groupBy: 
 
 export function computeCategoryBreakdown(): { name: string; value: number }[] {
   const transactions = getStoredTransactions();
-  const categoryMap: Record<string, number> = {};
-
-  transactions
-    .filter((t) => t.type === "expense")
-    .forEach((t) => {
-      const name = canonicalCategoryName(t.category);
-      categoryMap[name] = (categoryMap[name] || 0) + t.amount;
-    });
-
-  return Object.entries(categoryMap).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  const categoryMap = getCategoryTotals(transactions, "expense");
+  return Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
 }
 
 export function computeInsights(): {
@@ -170,15 +260,16 @@ export function computeInsights(): {
   const transactions = getStoredTransactions();
   const budgets = getStoredBudgets();
   const goals = getStoredGoals();
+  const currency = getAppCurrency();
 
   const insights: { type: "spending" | "budget" | "savings" | "trend"; message: string; severity: "info" | "warning" | "success" }[] = [];
 
-  // Check budgets
   budgets.forEach((b) => {
+    if (b.limitAmount <= 0) return;
     if (b.spent > b.limitAmount) {
       insights.push({
         type: "budget",
-        message: `You have exceeded your ${b.category} budget by $${(b.spent - b.limitAmount).toFixed(2)}!`,
+        message: `You have exceeded your ${b.category} budget by ${formatCurrencyExact(b.spent - b.limitAmount, currency)}!`,
         severity: "warning",
       });
     } else if (b.spent >= b.limitAmount * 0.8) {
@@ -190,8 +281,8 @@ export function computeInsights(): {
     }
   });
 
-  // Check goals
   goals.forEach((g) => {
+    if (g.targetAmount <= 0) return;
     const progress = Math.round((g.currentAmount / g.targetAmount) * 100);
     if (progress >= 100) {
       insights.push({
@@ -208,9 +299,8 @@ export function computeInsights(): {
     }
   });
 
-  // Overall financial summary insight
-  const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpenses = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const totalIncome = sumByType(transactions, "income");
+  const totalExpenses = sumByType(transactions, "expense");
 
   if (totalIncome > 0 && totalExpenses / totalIncome < 0.7) {
     insights.push({
@@ -248,15 +338,15 @@ export function computeFinancialHealthScore(): {
   const transactions = getStoredTransactions();
   const budgets = getStoredBudgets();
 
-  const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpense = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const totalIncome = sumByType(transactions, "income");
+  const totalExpense = sumByType(transactions, "expense");
 
   // 1. Savings Rate (30 pts max)
   let savingsRate = 0;
   if (totalIncome > 0) {
     savingsRate = Math.max(0, ((totalIncome - totalExpense) / totalIncome) * 100);
   }
-  const savingsScore = Math.min(30, (savingsRate / 20) * 30); // 20% savings rate gives full 30 pts
+  const savingsScore = Math.min(30, (savingsRate / 20) * 30);
 
   // 2. Budget Adherence (30 pts max)
   let budgetAdherence = 100;
@@ -277,7 +367,7 @@ export function computeFinancialHealthScore(): {
   else if (expenseToIncomeRatio > 40) ratioScore = 17;
 
   // 4. Debt/Liquidity Ratio (20 pts max)
-  const debtScore = 20; // Default good standing
+  const debtScore = 20;
 
   const totalScore = Math.round(savingsScore + budgetScore + ratioScore + debtScore);
   const score = Math.min(100, Math.max(0, totalScore));
@@ -300,18 +390,16 @@ export function computeFinancialHealthScore(): {
 
 export function computeGoalForecasts(): Record<string, string> {
   const goals = getStoredGoals();
-  const transactions = getStoredTransactions();
 
-  const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpense = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-
-  const monthlySavingsRate = Math.max(100, totalIncome - totalExpense); // Default monthly rate estimate
+  const monthlySavingsRate = estimateMonthlySavingsRate();
   const forecasts: Record<string, string> = {};
 
   goals.forEach((g) => {
     const remaining = g.targetAmount - g.currentAmount;
     if (remaining <= 0) {
       forecasts[g._id] = "Goal Achieved!";
+    } else if (monthlySavingsRate <= 0) {
+      forecasts[g._id] = "Increase your monthly savings to reach this goal";
     } else {
       const months = Math.ceil(remaining / monthlySavingsRate);
       forecasts[g._id] = `At current rate, achieved in ~${months} ${months === 1 ? "month" : "months"}`;
@@ -321,55 +409,58 @@ export function computeGoalForecasts(): Record<string, string> {
   return forecasts;
 }
 
-export function computeSmartStatistics() {
+export interface SmartStatistics {
+  topCategoryComparison: CategoryPeriodComparison | null;
+  weekendPercentage: number;
+  largestExpense: { description: string; amount: number } | null;
+  projectedMonthEnd: number;
+  currentMonthExpenses: number;
+  currentMonthIncome: number;
+}
+
+export function computeSmartStatistics(): SmartStatistics {
   const transactions = getStoredTransactions();
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const thisMonth = monthRange(0);
+  const lastMonth = monthRange(-1);
 
-  const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const expensesThisMonth = transactions.filter(
+    (t) => t.type === "expense" && isInRange(t, thisMonth),
+  );
+  const incomeThisMonth = sumByType(
+    transactions.filter((t) => t.type === "income" && isInRange(t, thisMonth)),
+    "income",
+  );
+  const totalExpensesThisMonth = expensesThisMonth.reduce((s, t) => s + t.amount, 0);
 
-  // 1. Food comparison between this month & last month
-  let thisMonthFood = 0;
-  let lastMonthFood = 0;
+  const weekendExpensesThisMonth = expensesThisMonth
+    .filter((t) => {
+      const day = new Date(t.date).getDay();
+      return day === 0 || day === 6;
+    })
+    .reduce((s, t) => s + t.amount, 0);
 
-  let totalExpensesThisMonth = 0;
-  let weekendExpensesThisMonth = 0;
-  let largestExpenseThisMonth: { description: string; amount: number } | null = null;
+  const largestExpenseThisMonth = expensesThisMonth.reduce<{ description: string; amount: number } | null>(
+    (largest, t) =>
+      !largest || t.amount > largest.amount
+        ? { description: t.description, amount: t.amount }
+        : largest,
+    null,
+  );
 
-  transactions.forEach((t) => {
-    const d = new Date(t.date);
-    const m = d.getMonth();
-    const y = d.getFullYear();
+  const thisMonthTotals = getCategoryTotals(transactions, "expense", thisMonth);
+  const lastMonthTotals = getCategoryTotals(transactions, "expense", lastMonth);
 
-    if (t.type === "expense") {
-      if (m === currentMonth && y === currentYear) {
-        totalExpensesThisMonth += t.amount;
-
-        const day = d.getDay();
-        if (day === 0 || day === 6) {
-          weekendExpensesThisMonth += t.amount;
-        }
-
-        if (t.category.toLowerCase().includes("food") || t.category.toLowerCase().includes("dining")) {
-          thisMonthFood += t.amount;
-        }
-
-        if (!largestExpenseThisMonth || t.amount > largestExpenseThisMonth.amount) {
-          largestExpenseThisMonth = { description: t.description, amount: t.amount };
-        }
-      } else if (m === prevMonth && y === prevMonthYear) {
-        if (t.category.toLowerCase().includes("food") || t.category.toLowerCase().includes("dining")) {
-          lastMonthFood += t.amount;
-        }
-      }
-    }
-  });
-
-  let foodComparison: number | null = null;
-  if (lastMonthFood > 0 && thisMonthFood > 0) {
-    foodComparison = Math.round(((thisMonthFood - lastMonthFood) / lastMonthFood) * 100);
+  let topCategoryComparison: CategoryPeriodComparison | null = null;
+  const topEntry = Object.entries(thisMonthTotals).sort((a, b) => b[1] - a[1])[0];
+  if (topEntry) {
+    const [category, currentTotal] = topEntry;
+    const previousTotal = lastMonthTotals[category] || 0;
+    topCategoryComparison = {
+      category,
+      currentTotal,
+      previousTotal,
+      changePct: percentChange(currentTotal, previousTotal),
+    };
   }
 
   const weekendPercentage =
@@ -377,19 +468,12 @@ export function computeSmartStatistics() {
       ? Math.round((weekendExpensesThisMonth / totalExpensesThisMonth) * 100)
       : 0;
 
-  const totalIncomeThisMonth = transactions
-    .filter((t) => {
-      const d = new Date(t.date);
-      return t.type === "income" && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    })
-    .reduce((s, t) => s + t.amount, 0);
-
-  const projectedMonthEnd = totalIncomeThisMonth - totalExpensesThisMonth;
-
   return {
-    foodComparison,
+    topCategoryComparison,
     weekendPercentage,
     largestExpense: largestExpenseThisMonth,
-    projectedMonthEnd,
+    projectedMonthEnd: incomeThisMonth - totalExpensesThisMonth,
+    currentMonthExpenses: totalExpensesThisMonth,
+    currentMonthIncome: incomeThisMonth,
   };
 }

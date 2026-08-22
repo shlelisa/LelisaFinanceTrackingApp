@@ -1,8 +1,6 @@
-import { getStoredTransactions, getStoredAccounts, getStoredBudgets, getStoredGoals, getStoredDebts, getStoredBills, getStoredUser } from "../storage/localStorage";
-import type { Transaction } from "../types/transaction";
-import type { Account } from "../types/account";
-import type { Budget } from "../types/budget";
-import type { Goal } from "../types/goal";
+import { getStoredTransactions, getStoredAccounts, getStoredBudgets, getStoredGoals, getStoredUser } from "../storage/localStorage";
+import { sumByType, getCategoryTotals, estimateMonthlySavingsRate } from "../storage/financeLogic";
+import { getAppCurrency } from "../currency";
 
 export interface TransactionVelocityContext {
   totalIncome: number;
@@ -45,12 +43,13 @@ export interface FinancialAIContext {
   rawTransactionsCount: number;
 }
 
-export function getFullAIContext(baseCurrency: string = "USD"): FinancialAIContext {
+export function getFullAIContext(baseCurrency?: string): FinancialAIContext {
   const user = getStoredUser();
   const transactions = getStoredTransactions();
   const accounts = getStoredAccounts();
   const budgets = getStoredBudgets();
   const goals = getStoredGoals();
+  const currency = baseCurrency || getAppCurrency();
 
   // 1. Liquidity Context
   const accountsSummary = accounts.map((a) => ({
@@ -62,33 +61,26 @@ export function getFullAIContext(baseCurrency: string = "USD"): FinancialAIConte
   const totalLiquidity = accounts.reduce((sum, a) => sum + a.balance, 0);
 
   // 2. Transaction Velocity Context
-  let totalIncome = 0;
-  let totalExpenses = 0;
-  const expenseCategoryBreakdown: Record<string, number> = {};
-  const incomeCategoryBreakdown: Record<string, number> = {};
+  const totalIncome = sumByType(transactions, "income");
+  const totalExpenses = sumByType(transactions, "expense");
+  const expenseCategoryBreakdown = getCategoryTotals(transactions, "expense");
+  const incomeCategoryBreakdown = getCategoryTotals(transactions, "income");
+
   const merchantMap: Record<string, { totalAmount: number; count: number }> = {};
   let weekendExpenses = 0;
 
   transactions.forEach((t) => {
-    const d = new Date(t.date);
-    if (t.type === "income") {
-      totalIncome += t.amount;
-      incomeCategoryBreakdown[t.category] = (incomeCategoryBreakdown[t.category] || 0) + t.amount;
-    } else if (t.type === "expense") {
-      totalExpenses += t.amount;
-      expenseCategoryBreakdown[t.category] = (expenseCategoryBreakdown[t.category] || 0) + t.amount;
+    if (t.type !== "expense") return;
+    const descKey = t.description.trim().toLowerCase();
+    if (!merchantMap[descKey]) {
+      merchantMap[descKey] = { totalAmount: 0, count: 0 };
+    }
+    merchantMap[descKey].totalAmount += t.amount;
+    merchantMap[descKey].count += 1;
 
-      const descKey = t.description.trim().toLowerCase();
-      if (!merchantMap[descKey]) {
-        merchantMap[descKey] = { totalAmount: 0, count: 0 };
-      }
-      merchantMap[descKey].totalAmount += t.amount;
-      merchantMap[descKey].count += 1;
-
-      const day = d.getDay();
-      if (day === 0 || day === 6) {
-        weekendExpenses += t.amount;
-      }
+    const day = new Date(t.date).getDay();
+    if (day === 0 || day === 6) {
+      weekendExpenses += t.amount;
     }
   });
 
@@ -106,7 +98,7 @@ export function getFullAIContext(baseCurrency: string = "USD"): FinancialAIConte
     const remaining = b.limitAmount - b.spent;
     let riskLevel: "safe" | "warning" | "exceeded" = "safe";
     if (b.spent > b.limitAmount) riskLevel = "exceeded";
-    else if (b.spent >= b.limitAmount * 0.8) riskLevel = "warning";
+    else if (b.limitAmount > 0 && b.spent >= b.limitAmount * 0.8) riskLevel = "warning";
 
     return {
       category: b.category,
@@ -121,11 +113,12 @@ export function getFullAIContext(baseCurrency: string = "USD"): FinancialAIConte
   const overallAdherenceRate = budgetList.length > 0 ? Math.round((safeBudgets / budgetList.length) * 100) : 100;
 
   // 4. Goal Velocity Context
-  const monthlyRate = Math.max(100, netSavings);
+  const monthlyRate = estimateMonthlySavingsRate();
   const goalList = goals.map((g) => {
     const pct = g.targetAmount > 0 ? Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100)) : 0;
     const remaining = g.targetAmount - g.currentAmount;
-    const estimatedMonthsToComplete = remaining <= 0 ? 0 : Math.ceil(remaining / monthlyRate);
+    const estimatedMonthsToComplete =
+      remaining <= 0 || monthlyRate <= 0 ? 0 : Math.ceil(remaining / monthlyRate);
 
     return {
       name: g.name,
@@ -138,7 +131,7 @@ export function getFullAIContext(baseCurrency: string = "USD"): FinancialAIConte
 
   return {
     timestamp: new Date().toISOString(),
-    currency: baseCurrency,
+    currency,
     userProfile: {
       fullName: user.fullName || "User",
       email: user.email || "",

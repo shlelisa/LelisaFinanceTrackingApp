@@ -16,17 +16,58 @@ export interface SpeechOptions {
   onError?: (message: string) => void;
 }
 
-let nativeSpeech: any = null;
-let nativeListeners: any[] = [];
+type NativePermissionStatus = {
+  speechRecognition?: "granted" | "denied" | "prompt" | "prompt-with-rationale";
+};
 
-function getNativeSpeech(): any {
+interface NativeSpeechPlugin {
+  available: () => Promise<{ available: boolean }>;
+  start: (options?: {
+    language?: string;
+    maxResults?: number;
+    popup?: boolean;
+    partialResults?: boolean;
+  }) => Promise<{ matches?: string[] }>;
+  stop: () => Promise<void>;
+  checkPermissions: () => Promise<NativePermissionStatus>;
+  requestPermissions: () => Promise<NativePermissionStatus>;
+  addListener: (
+    eventName: string,
+    listenerFunc: (data: unknown) => void
+  ) => Promise<{ remove: () => Promise<void> }>;
+}
+
+interface CapacitorLike {
+  isNativePlatform?: () => boolean;
+  Plugins?: {
+    SpeechRecognition?: NativeSpeechPlugin;
+  };
+}
+
+interface WebRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: { results: Array<Array<{ transcript: string }>> }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => WebRecognitionLike;
+
+let nativeSpeech: NativeSpeechPlugin | null = null;
+let nativeListeners: Array<{ remove: () => Promise<void> }> = [];
+
+function getNativeSpeech(): NativeSpeechPlugin | null {
   if (typeof window === "undefined") return null;
   if (nativeSpeech) return nativeSpeech;
   try {
-    const cap = (window as any)?.Capacitor;
-    if (cap?.isNativePlatform && cap.isNativePlatform()) {
-      const plugin = (window as any)?.Capacitor?.Plugins?.SpeechRecognition;
-      if (plugin) nativeSpeech = plugin;
+    const cap = (window as unknown as { Capacitor?: CapacitorLike }).Capacitor;
+    if (cap?.isNativePlatform?.() && cap.Plugins?.SpeechRecognition) {
+      nativeSpeech = cap.Plugins.SpeechRecognition;
     }
   } catch {
     nativeSpeech = null;
@@ -37,9 +78,11 @@ function getNativeSpeech(): any {
 export function isSpeechSupported(): boolean {
   if (typeof window === "undefined") return false;
   if (getNativeSpeech()) return true;
-  const SpeechRecognition =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  return !!SpeechRecognition;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  return !!w.SpeechRecognition || !!w.webkitSpeechRecognition;
 }
 
 export async function requestSpeechPermission(): Promise<boolean> {
@@ -59,7 +102,7 @@ export async function requestSpeechPermission(): Promise<boolean> {
 export function startSpeechRecognition(options: SpeechOptions = {}): void {
   const plugin = getNativeSpeech();
   if (plugin) {
-    startNative(plugin, options);
+    void startNative(plugin, options);
   } else {
     startWeb(options);
   }
@@ -68,11 +111,7 @@ export function startSpeechRecognition(options: SpeechOptions = {}): void {
 export function stopSpeechRecognition(): void {
   const plugin = getNativeSpeech();
   if (plugin) {
-    try {
-      plugin.stop();
-    } catch {
-      // ignore
-    }
+    void plugin.stop().catch(() => undefined);
   } else {
     stopWeb();
   }
@@ -80,60 +119,62 @@ export function stopSpeechRecognition(): void {
 
 // --- Native (Capacitor) implementation ---
 
-function startNative(plugin: any, options: SpeechOptions): void {
-  (async () => {
-    try {
-      const available = await plugin.available();
-      if (!available?.available) {
-        options.onError?.("Speech recognition is not available on this device.");
-        return;
-      }
-
-      for (const listener of nativeListeners) {
-        try {
-          await listener.remove();
-        } catch {
-          // ignore
-        }
-      }
-      nativeListeners = [];
-
-      const onPartial = await plugin.addListener("partialResults", (data: any) => {
-        const matches: string[] = data?.matches || [];
-        if (matches.length > 0) {
-          options.onResult?.(matches[0]);
-        }
-      });
-
-      const onState = await plugin.addListener("listeningState", (data: any) => {
-        if (data?.status === "started") options.onStart?.();
-        if (data?.status === "stopped") options.onEnd?.();
-      });
-
-      nativeListeners.push(onPartial, onState);
-      options.onStart?.();
-
-      await plugin.start({
-        language: options.language || "en-US",
-        maxResults: 5,
-        popup: false,
-        partialResults: true,
-      });
-    } catch (err: any) {
-      options.onError?.(err?.message || "Failed to start speech recognition.");
+async function startNative(plugin: NativeSpeechPlugin, options: SpeechOptions): Promise<void> {
+  try {
+    const available = await plugin.available();
+    if (!available?.available) {
+      options.onError?.("Speech recognition is not available on this device.");
+      return;
     }
-  })();
+
+    for (const listener of nativeListeners) {
+      try {
+        await listener.remove();
+      } catch {
+        // ignore
+      }
+    }
+    nativeListeners = [];
+
+    const onPartial = await plugin.addListener("partialResults", (data) => {
+      const matches = (data as { matches?: string[] })?.matches || [];
+      if (matches.length > 0) {
+        options.onResult?.(matches[0]);
+      }
+    });
+
+    const onState = await plugin.addListener("listeningState", (data) => {
+      const status = (data as { status?: "started" | "stopped" })?.status;
+      if (status === "started") options.onStart?.();
+      if (status === "stopped") options.onEnd?.();
+    });
+
+    nativeListeners.push(onPartial, onState);
+    options.onStart?.();
+
+    await plugin.start({
+      language: options.language || "en-US",
+      maxResults: 5,
+      popup: false,
+      partialResults: true,
+    });
+  } catch (err) {
+    options.onError?.(err instanceof Error ? err.message : "Failed to start speech recognition.");
+  }
 }
 
 // --- Web (SpeechRecognition API) implementation ---
 
-let webRecognition: any = null;
+let webRecognition: WebRecognitionLike | null = null;
 
 function startWeb(options: SpeechOptions): void {
   if (typeof window === "undefined") return;
 
-  const SpeechRecognition =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
     options.onError?.("Web Speech API is not supported on this browser/device.");
@@ -148,11 +189,11 @@ function startWeb(options: SpeechOptions): void {
     recognition.lang = options.language || "en-US";
 
     recognition.onstart = () => options.onStart?.();
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0]?.transcript || "";
       if (transcript) options.onResult?.(transcript);
     };
-    recognition.onerror = (err: any) => {
+    recognition.onerror = (err) => {
       if (err.error !== "no-speech") {
         options.onError?.("Speech recognition failed: " + err.error);
       }
@@ -163,8 +204,8 @@ function startWeb(options: SpeechOptions): void {
     };
 
     recognition.start();
-  } catch (err: any) {
-    options.onError?.(err?.message || "Failed to start speech recognition.");
+  } catch (err) {
+    options.onError?.(err instanceof Error ? err.message : "Failed to start speech recognition.");
   }
 }
 

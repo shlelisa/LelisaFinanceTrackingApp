@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAppCurrency } from "@/hooks/useAppCurrency";
 import { useRates } from "@/hooks/useRates";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 
 interface MoneyProps {
   amount: number;
@@ -20,7 +21,7 @@ export default function Money({ amount, currency: overrideCurrency, className, s
     setMounted(true);
   }, []);
 
-  const activeCurrency = overrideCurrency || (mounted ? preferredCurrency : "USD");
+  const activeCurrency = overrideCurrency || (mounted ? preferredCurrency : DEFAULT_CURRENCY);
 
   if (!mounted || activeCurrency === "ETB" || !rates?.etbRates?.[activeCurrency]) {
     return <span className={className}>{format(amount)}</span>;

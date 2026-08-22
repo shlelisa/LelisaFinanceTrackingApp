@@ -5,9 +5,11 @@ import { getStoredBills, toggleBillPaidStatus, deleteStoredBill } from "@/lib/st
 import type { Bill } from "@/lib/types/bill";
 import BillForm from "@/components/BillForm";
 import Money from "@/components/Money";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Plus, CheckCircle2, Circle, Clock, Trash2, Edit2, AlertCircle } from "lucide-react";
 
 export default function BillsPage() {
+  const { t } = useTranslation();
   const [bills, setBills] = useState<Bill[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -26,7 +28,7 @@ export default function BillsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this bill?")) {
+    if (confirm(t("bills.delete_confirm"))) {
       deleteStoredBill(id);
       loadBills();
     }
@@ -40,9 +42,9 @@ export default function BillsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Recurring Bills</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("bills.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Never miss electricity, water, internet, or rent due dates.
+            {t("bills.subtitle")}
           </p>
         </div>
         <button
@@ -53,7 +55,7 @@ export default function BillsPage() {
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
         >
           <Plus className="size-4" />
-          Add Bill
+          {t("bills.add")}
         </button>
       </div>
 
@@ -61,7 +63,7 @@ export default function BillsPage() {
       <div className="rounded-xl border bg-card p-6 shadow-xs flex items-center justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Total Unpaid Bills
+            {t("bills.total_unpaid")}
           </div>
           <div className="mt-1 text-2xl font-black text-destructive">
             <Money amount={totalUnpaid} currency="USD" />
@@ -69,7 +71,7 @@ export default function BillsPage() {
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-600">
           <AlertCircle className="size-4" />
-          <span>{bills.filter((b) => b.status === "unpaid").length} Pending</span>
+          <span>{t("bills.pending", { count: bills.filter((b) => b.status === "unpaid").length })}</span>
         </div>
       </div>
 
@@ -104,10 +106,10 @@ export default function BillsPage() {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                     <span className="rounded bg-muted px-2 py-0.5 font-medium">{bill.category}</span>
                     <span className="flex items-center gap-1">
-                      <Clock className="size-3" /> Due {bill.dueDate}
+                      <Clock className="size-3" /> {t("bills.due", { date: bill.dueDate })}
                     </span>
                     {bill.repeatMonthly && (
-                      <span className="text-[10px] font-semibold uppercase text-primary">Monthly</span>
+                      <span className="text-[10px] font-semibold uppercase text-primary">{t("bills.monthly")}</span>
                     )}
                   </div>
                 </div>
@@ -123,7 +125,7 @@ export default function BillsPage() {
                       isPaid ? "text-emerald-600" : isOverdue ? "text-destructive" : "text-amber-600"
                     }`}
                   >
-                    {isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid"}
+                    {isPaid ? t("bills.paid") : isOverdue ? t("bills.overdue") : t("bills.unpaid")}
                   </span>
                 </div>
 
@@ -151,7 +153,7 @@ export default function BillsPage() {
 
         {bills.length === 0 && (
           <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-            No bills added yet. Track your electricity, water, internet, and rent bills here.
+            {t("bills.no_bills")}
           </div>
         )}
       </div>

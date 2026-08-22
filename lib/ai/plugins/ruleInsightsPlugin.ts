@@ -1,5 +1,6 @@
 import type { AIPlugin, AIInsightItem } from "../aiEngine";
 import type { FinancialAIContext } from "../aiContextProviders";
+import { formatCurrencyExact } from "../../currency";
 
 export class RuleInsightsPlugin implements AIPlugin {
   id = "rule-insights-plugin";
@@ -17,7 +18,7 @@ export class RuleInsightsPlugin implements AIPlugin {
           id: `budget_exceeded_${b.category}`,
           type: "budget",
           title: "Budget Exceeded",
-          message: `You have exceeded your **${b.category}** budget limit by $${Math.abs(b.remaining).toFixed(2)}.`,
+          message: `You have exceeded your **${b.category}** budget limit by ${formatCurrencyExact(Math.abs(b.remaining), ctx.currency)}.`,
           severity: "warning",
           actionableLink: "/budgets",
         });

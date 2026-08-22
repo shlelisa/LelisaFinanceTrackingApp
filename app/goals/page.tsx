@@ -55,10 +55,10 @@ export default function GoalsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="size-6 text-primary" />
-            <h1 className="text-2xl font-semibold text-primary">Savings Goals</h1>
+            <h1 className="text-2xl font-semibold text-primary">{t("goals.title")}</h1>
           </div>
           <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-1 size-4" /> Add Goal
+            <Plus className="mr-1 size-4" /> {t("goals.add")}
           </Button>
         </div>
 

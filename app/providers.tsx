@@ -7,6 +7,19 @@ import TranslationProvider from "@/components/TranslationProvider";
 import { AIEngineRegistry } from "@/lib/ai/aiEngine";
 import { RuleInsightsPlugin } from "@/lib/ai/plugins/ruleInsightsPlugin";
 import { PredictiveForecastPlugin } from "@/lib/ai/plugins/predictiveForecastPlugin";
+import { onDataChanged } from "@/lib/storage/localStorage";
+
+const REACTIVE_QUERY_KEYS = [
+  ["transactions"],
+  ["budgets"],
+  ["goals"],
+  ["recurring"],
+  ["accounts"],
+  ["bills"],
+  ["debts"],
+  ["categories"],
+  ["incomePeriod"],
+] as const;
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -35,6 +48,14 @@ export default function Providers({ children }: { children: ReactNode }) {
       document.documentElement.classList.remove("dark");
     }
   }, []);
+
+  useEffect(() => {
+    return onDataChanged(() => {
+      REACTIVE_QUERY_KEYS.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+    });
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

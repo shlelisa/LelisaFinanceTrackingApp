@@ -10,6 +10,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -25,11 +26,23 @@ import {
   type TransactionFormValues,
 } from "@/lib/validation/transaction";
 import { useTranslation } from "@/hooks/useTranslation";
-import { getStoredAccounts, getAllKnownCategoryNames } from "@/lib/storage/localStorage";
+import {
+  getStoredAccounts,
+  getStoredCategories,
+  getStoredTransactions,
+  getAllKnownCategoryNames,
+} from "@/lib/storage/localStorage";
 import type { Account } from "@/lib/types/account";
 import { autoCategorizeDescription } from "@/lib/aiCategorizer";
 import ReceiptOcrScanner from "@/components/ReceiptOcrScanner";
-import { Calculator, Camera, X, Tag, AlertCircle } from "lucide-react";
+import {
+  Calculator,
+  Camera,
+  X,
+  Tag,
+  AlertCircle,
+  Banknote,
+} from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -63,10 +76,17 @@ export default function TransactionForm({
 }: Props) {
   const { t } = useTranslation();
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [incomeSources, setIncomeSources] = useState<string[]>([]);
   const [categoryList, setCategoryList] = useState<string[]>([]);
-  const [calcInput, setCalcInput] = useState(defaultValues?.amount ? String(defaultValues.amount) : "");
-  const [receiptPreview, setReceiptPreview] = useState<string | undefined>(defaultValues?.receiptUrl);
-  const [tagInput, setTagInput] = useState(defaultValues?.tags ? defaultValues.tags.join(", ") : "");
+  const [calcInput, setCalcInput] = useState(
+    defaultValues?.amount ? String(defaultValues.amount) : "",
+  );
+  const [receiptPreview, setReceiptPreview] = useState<string | undefined>(
+    defaultValues?.receiptUrl,
+  );
+  const [tagInput, setTagInput] = useState(
+    defaultValues?.tags ? defaultValues.tags.join(", ") : "",
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,6 +96,18 @@ export default function TransactionForm({
 
       const combined = getAllKnownCategoryNames();
       setCategoryList(combined);
+
+      const incomes = new Set<string>();
+      getStoredCategories().forEach((c) => {
+        if (c.type === "income") incomes.add(c.name);
+      });
+      getStoredTransactions().forEach((t) => {
+        if (t.type === "income" && t.category) incomes.add(t.category);
+      });
+      if (incomes.size === 0) {
+        ["Salary", "Business", "Gift"].forEach((n) => incomes.add(n));
+      }
+      setIncomeSources(Array.from(incomes));
 
       setCalcInput(defaultValues?.amount ? String(defaultValues.amount) : "");
       setReceiptPreview(defaultValues?.receiptUrl);
@@ -174,7 +206,9 @@ export default function TransactionForm({
 
   const handleInvalid = (errs: any) => {
     console.warn("Form validation errors:", errs);
-    toast.error("Please fill in all required fields (Amount, Category, Description).");
+    toast.error(
+      "Please fill in all required fields (Amount, Category, Description).",
+    );
   };
 
   return (
@@ -193,7 +227,10 @@ export default function TransactionForm({
           </div>
         )}
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleInvalid)} className="space-y-4">
+        <form
+          onSubmit={handleSubmit(handleFormSubmit, handleInvalid)}
+          className="space-y-4"
+        >
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="type">{t("transaction.type")}</Label>
@@ -206,7 +243,9 @@ export default function TransactionForm({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="income">{t("common.income")}</SelectItem>
-                  <SelectItem value="expense">{t("common.expenses")}</SelectItem>
+                  <SelectItem value="expense">
+                    {t("common.expenses")}
+                  </SelectItem>
                   <SelectItem value="transfer">Transfer</SelectItem>
                 </SelectContent>
               </Select>
@@ -214,7 +253,10 @@ export default function TransactionForm({
 
             {/* Built-in Amount Calculator Input */}
             <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="amount_calc" className="flex items-center justify-between">
+              <Label
+                htmlFor="amount_calc"
+                className="flex items-center justify-between"
+              >
                 <span>{t("transaction.amount")} *</span>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Calculator className="size-3" /> Auto-eval (e.g. 250+180)
@@ -285,18 +327,31 @@ export default function TransactionForm({
             </div>
           </div>
 
-          {/* Accounts & Payment Method Selection */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Payment Source & Payment Method */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Account</Label>
+              <Label>Pay From</Label>
               <Select
                 value={watch("accountId") || ""}
                 onValueChange={(v) => setValue("accountId", v || undefined)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Account" />
+                  <SelectValue placeholder="Select Account or Income Source" />
                 </SelectTrigger>
                 <SelectContent>
+                  {incomeSources.length > 0 && (
+                    <>
+                      {incomeSources.map((name) => (
+                        <SelectItem key={`income:${name}`} value={`income:${name}`}>
+                          <span className="flex items-center gap-2">
+                            <Banknote className="size-3.5 text-emerald-500" />
+                            {name} (Income)
+                          </span>
+                        </SelectItem>
+                      ))}
+                      <SelectSeparator />
+                    </>
+                  )}
                   {accounts.map((acc) => (
                     <SelectItem key={acc._id} value={acc._id}>
                       {acc.name} ({acc.currency})
@@ -327,9 +382,14 @@ export default function TransactionForm({
 
           {/* Description & Note */}
           <div className="space-y-1.5">
-            <Label htmlFor="description" className="flex items-center justify-between">
+            <Label
+              htmlFor="description"
+              className="flex items-center justify-between"
+            >
               <span>{t("transaction.description")} *</span>
-              <span className="text-[10px] text-primary font-medium">✨ Auto AI Categorizing</span>
+              <span className="text-[10px] text-primary font-medium">
+                ✨ Auto AI Categorizing
+              </span>
             </Label>
             <Input
               id="description"
@@ -382,7 +442,9 @@ export default function TransactionForm({
               </Label>
               {receiptPreview ? (
                 <div className="relative flex items-center justify-between rounded-lg border p-1.5 text-xs">
-                  <span className="truncate max-w-[120px]">Receipt attached</span>
+                  <span className="truncate max-w-[120px]">
+                    Receipt attached
+                  </span>
                   <button
                     type="button"
                     onClick={() => {

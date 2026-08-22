@@ -4,14 +4,18 @@
   },
   "nav": {
     "dashboard": "Dashboordii",
+    "accounts": "Akkaantoota",
     "transactions": "Ragaalewwan",
+    "bills": "Bilishii fi Saabskripnii",
+    "debt": "Liqaa fi Liqii",
     "budgets": "Bajatota",
-    "goals": "Kaayyoota",
+    "goals": "Kaayyoo Qusannaa",
+    "categories": "Ramaddii",
     "recurring": "Yeroo Yerootti",
     "reports": "Keessummoota",
     "calendar": "Kalandarii",
     "notifications": "Beeksifamoota",
-    "profile": "Profiloo",
+    "profile": "Profiloo fi Wabii",
     "logout": "Baii",
     "settings": "Wabii"
   },
@@ -88,6 +92,44 @@
     "recent_transactions": "Ragaalewwan Haaromsaa",
     "no_transactions": "Ragaaleen hin jiru.",
     "add_transaction": "Ragaale Ida'i"
+  },
+  "accounts": {
+    "title": "Herreegaalee",
+    "subtitle": "Qarshii harkaa, herreegaa baankii, kaardii kireedii fi boorsaa mobaayilaa keessan bulchaa.",
+    "add": "Herreegaa Id'uu",
+    "net_worth": "Walumaa Gatii Idilee (Herreegaa USD)",
+    "current_balance": "Hariiraa Ammaa",
+    "no_accounts": "Har'a hin ijaaramne. Qarshii harkaa, baankii ykn boorsaa mobaayilaa keessan qindeessuuf \"Herreegaa Id'uu\" cuqaasaa.",
+    "delete_confirm": "Herreegaa kana haquu mirkaneeffatteettaa?"
+  },
+  "bills": {
+    "title": "Kaffaltiiwwan Yeroodhaa",
+    "subtitle": "Guyyoota dhimmii elektrikii, bishaanii, intarneetii ykn kiraa hin darbatinaa.",
+    "add": "Kaffaltii Id'uu",
+    "total_unpaid": "Kaffaltiiwwan hin kaffalamne walumaa",
+    "pending": "{count} eegaa jiru",
+    "due": "Guyyaan {date}",
+    "monthly": "Ji'aan",
+    "paid": "Kaffalame",
+    "overdue": "Yeroo darbe",
+    "unpaid": "Hin kaffalamne",
+    "no_bills": "Har'a kaffaltiin hin ida'ame. Kaffaltiiwwan elektrikii, bishaanii, intarneetii fi kiraa asirratti hordofaa.",
+    "delete_confirm": "Kaffaltii kana haquu mirkaneeffatteettaa?"
+  },
+  "debt": {
+    "title": "Liqii fi Durbi",
+    "subtitle": "Maallaqa nama biraa irraa liqeeffatte, maallaqa namaaf liqii fi durbii baankii hordofaa.",
+    "add": "Galmeessaa Id'uu",
+    "money_lent": "Maallaqa Liqeeffame (Siif deebi'u)",
+    "total_owed": "Walumaa Liqii / Durbii",
+    "type_lent": "Maallaqa Liqeeffame",
+    "type_loan": "Durbii Baankii",
+    "type_borrowed": "Maallaqa Liqeeffatte",
+    "original_total": "Dursa Walumaa:",
+    "remaining": "Hafee:",
+    "mark_settled": "Fixaatee Mallattoo Godhi",
+    "no_records": "Har'a galmeessi liqii ykn durbiti hin ijaaramne.",
+    "delete_confirm": "Galmeessaa liqii kana haquu mirkaneeffatteettaa?"
   },
   "transaction": {
     "title": "Ragaalewwan",
@@ -267,7 +309,17 @@
     "currency_etb": "ETB (Birr)",
     "currency_usd": "USD ($)",
     "currency_eur": "EUR (€)",
-    "currency_gbp": "GBP (£)"
+    "currency_gbp": "GBP (£)",
+    "backup_security": "Waraabaa Daataa Naannoo fi Nageenya",
+    "export_data": "Daataa Appii Babal'isi",
+    "export_data_subtext": "Waraabaa JSON guutuu ragaalee, baajetawwan, kaayyoo fi herreegaalee buusi.",
+    "export_json": "Waraabaa JSON Babal'isi",
+    "export_success": "Waraabaan JSON milkaa'ee bu'ee jira!",
+    "import_data": "Daataa Waraabaa Galchi",
+    "import_data_subtext": "Haala appii kee faayilii waraabaa JSON duraan babal'ifame irraa deebisi.",
+    "import_json": "Faayilii JSON Galchi",
+    "import_success": "Daataa milkaa'ee galme! Amma deebi'ee yaa'aa jira...",
+    "import_error": "Waraabaa galchuu hin milkoomne"
   },
   "change_password": {
     "current": "Jecha Icciitii Ammaa",
@@ -354,6 +406,9 @@
     "goal_current_negative": "Hammi negaatiivii ta'uu hin qabu.",
     "recurring_amount_required": "Hammi galchi.",
     "recurring_amount_positive": "Hammi 0 olii ta'uu qaba.",
+    "income_amount_required": "Hammi galii galchi.",
+    "income_amount_positive": "Galiin 0 olii ta'uu qaba.",
+    "end_after_start": "Guyyaan dhumaa guyyaa jalqabaa booda ta'uu qaba.",
     "date_format": "Guyyaan YYYY-MM-DD ta'uu qaba"
   },
   "categories": {
@@ -363,6 +418,34 @@
     "HouseRent": "Kiraa Manaa",
     "MobileData": "Daataa Bilbilaa",
     "Entertainment": "Tamsa",
-    "Other": "Kanneen Biroo"
+    "Other": "Kanneen Biroo",
+    "title": "Ramaddiiwwan",
+    "subtitle": "Ramaddiiwwan galiitii fi baasiiwwan biftuuwwan fi mallattoolee keessaniin mijessi.",
+    "add": "Ramaddii Id'uu",
+    "edit_title": "Ramaddii Booddee",
+    "new_title": "Ramaddii Haarawa",
+    "name": "Maqaa",
+    "name_placeholder": "fkn. Wadaadtoota",
+    "type": "Gosa",
+    "expense": "Baasii",
+    "income": "Galii",
+    "icon": "Mallattoo",
+    "theme_color": "Biftuu Qindaa'inaa",
+    "cancel": "Haqui",
+    "save_changes": "Jijjiirama Qusadhu",
+    "save": "Ramaddii Qusadhu",
+    "delete_confirm": "Ramaddii of-barbaadamee kana haquu mirkaneeffatteettaa?"
+  },
+  "incomePeriod": {
+    "title": "Yeroo Galii",
+    "set": "Galii Qindaa'i",
+    "not_set": "Yeroon galii hin qindaa'in. Hammi galii fi bal'inni guyyaa qindaa'i akka baasiin isaa irratti hordofamu.",
+    "set_period": "Yeroo Galii Qindaa'i",
+    "income": "Galii",
+    "amount": "Hammi Galii",
+    "start_date": "Guyyaa Jalqabaa",
+    "end_date": "Guyyaa Dhumaa",
+    "spent": "Baasame",
+    "remaining": "Kan Jiru"
   }
 }
