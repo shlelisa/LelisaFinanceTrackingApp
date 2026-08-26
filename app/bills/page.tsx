@@ -39,7 +39,7 @@ export default function BillsPage() {
     .reduce((sum, b) => sum + b.amount, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("bills.title")}</h1>
@@ -84,14 +84,14 @@ export default function BillsPage() {
           return (
             <div
               key={bill._id}
-              className={`flex items-center justify-between rounded-xl border bg-card p-4 shadow-xs transition-all ${
+              className={`flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs transition-all sm:flex-row sm:items-center sm:justify-between ${
                 isPaid ? "opacity-75 border-muted" : isOverdue ? "border-destructive/40 bg-destructive/5" : ""
               }`}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex min-w-0 items-center gap-4">
                 <button
                   onClick={() => handleToggleStatus(bill._id)}
-                  className="rounded-full transition-transform hover:scale-110"
+                  className="shrink-0 rounded-full transition-transform hover:scale-110"
                 >
                   {isPaid ? (
                     <CheckCircle2 className="size-6 text-emerald-500 fill-emerald-500/20" />
@@ -99,11 +99,11 @@ export default function BillsPage() {
                     <Circle className="size-6 text-muted-foreground hover:text-primary" />
                   )}
                 </button>
-                <div>
-                  <h3 className={`font-semibold text-foreground ${isPaid ? "line-through text-muted-foreground" : ""}`}>
+                <div className="min-w-0">
+                  <h3 className={`truncate font-semibold text-foreground ${isPaid ? "line-through text-muted-foreground" : ""}`}>
                     {bill.name}
                   </h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="rounded bg-muted px-2 py-0.5 font-medium">{bill.category}</span>
                     <span className="flex items-center gap-1">
                       <Clock className="size-3" /> {t("bills.due", { date: bill.dueDate })}
@@ -115,7 +115,7 @@ export default function BillsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between gap-4 sm:justify-end">
                 <div className="text-right">
                   <div className="font-bold text-foreground">
                     <Money amount={bill.amount} currency={bill.currency} />

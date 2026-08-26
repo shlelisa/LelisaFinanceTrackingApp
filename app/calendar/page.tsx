@@ -67,7 +67,7 @@ export default function CalendarPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="size-6 text-primary" />
@@ -106,7 +106,7 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={day}
-                    className={`min-h-[80px] bg-background px-2 py-1.5 text-xs ${
+                    className={`min-h-[64px] overflow-hidden bg-background px-2 py-1.5 text-xs sm:min-h-[80px] ${
                       day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
                         ? "ring-2 ring-primary ring-inset"
                         : ""
@@ -114,17 +114,23 @@ export default function CalendarPage() {
                   >
                     <span className="font-medium">{day}</span>
                     {hasIncome && (
-                      <p className="mt-1 text-[10px] text-green-500 truncate">
-                        +{formatCurrency(totals.income)}
-                      </p>
+                      <>
+                        <span className="mt-1 block size-1.5 rounded-full bg-green-500 sm:hidden" />
+                        <p className="mt-1 hidden text-[10px] text-green-500 truncate sm:block">
+                          +{formatCurrency(totals.income)}
+                        </p>
+                      </>
                     )}
                     {hasExpense && (
-                      <p className="text-[10px] text-red-500 truncate">
-                        -{formatCurrency(totals.expense)}
-                      </p>
+                      <>
+                        <span className="mt-0.5 block size-1.5 rounded-full bg-red-500 sm:hidden" />
+                        <p className="hidden text-[10px] text-red-500 truncate sm:block">
+                          -{formatCurrency(totals.expense)}
+                        </p>
+                      </>
                     )}
                     {items.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="hidden text-[10px] text-muted-foreground sm:block">
                         {items.length} {t(items.length > 1 ? "calendar.txs" : "calendar.tx")}
                       </p>
                     )}

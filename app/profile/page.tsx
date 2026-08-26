@@ -104,7 +104,7 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 sm:p-6">
         <h1 className="text-2xl font-semibold text-primary">{t("profile.title")}</h1>
 
         <Card>
@@ -299,6 +299,10 @@ export default function ProfilePage() {
             {t("profile.delete_account")}
           </Button>
         </div>
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          LelisaFin · Personal Finance Tracker © {new Date().getFullYear()}
+        </p>
 
         <ChangePasswordDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
         <PinLockModal open={pinModalOpen} onClose={() => setPinModalOpen(false)} mode="setup" />

@@ -15,6 +15,7 @@ import FavoritesWidget from "@/components/FavoritesWidget";
 import FinancialHealthCard from "@/components/FinancialHealthCard";
 import SmartStatisticsCard from "@/components/SmartStatisticsCard";
 import IncomePeriodCard from "@/components/IncomePeriodCard";
+import SalaryCard from "@/components/SalaryCard";
 import Money from "@/components/Money";
 import { useDashboardSummary } from "@/hooks/useTransactions";
 import type { Transaction } from "@/lib/types/transaction";
@@ -112,8 +113,11 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Income Period Tracker */}
-        <IncomePeriodCard />
+        {/* Income Period Tracker & Monthly Salary */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <IncomePeriodCard />
+          <SalaryCard />
+        </div>
 
         {/* Favorites Quick Add Shortcut */}
         <FavoritesWidget />

@@ -174,7 +174,27 @@
     "period_weekly": "Torban",
     "period_monthly": "Ji'a",
     "period_quarterly": "Kurtalee",
-    "period_yearly": "Waggaa"
+    "period_yearly": "Waggaa",
+    "exceeds_income": "Bajatota ji'aan eegama galii ji'aatiin dabarsuu hin qaban. Hangamma {max} ramadu dandeessu.",
+    "max_budget_hint": "Galii ji'a eegamu: {income} · Bajatota ji'aatti achanaan ramadamu: {max}"
+  },
+  "salary": {
+    "title": "Minda Ji'aa",
+    "set": "Minda Qabadhu",
+    "set_title": "Minda Ji'aa Qabi",
+    "edit_title": "Minda Ji'aa Gulaali",
+    "remove": "Minda Haqi",
+    "not_set": "Minda ji'aa fi guyyaa kaffaltii kee qabi — ji'a hunda ofumaa galii dha kaa'ama.",
+    "amount": "Hammi Ji'aa",
+    "payment_day": "Guyyaa Kaffaltii Ji'a",
+    "paid_on": "Ji'a hunda guyyaa {day} irratti ofumaa dabalata",
+    "auto_note": "Mindni kee ji'a hunda guyyaa kanaa irratti ofumaa galii dha kaa'ama. Baansii duubaa qabee galuu danda'a.",
+    "credited": "Minda ji'a kanaa kaffalameera",
+    "next_credit": "Kaffaltii ofumaa itti aanu: {date}",
+    "saved": "Qindaa'inoota mindaa olkaa'ameera",
+    "removed": "Mindni haqameera",
+    "invalid_amount": "Maaloo hammi mindaa sirrii ta'e tokkoon 0 caalaa galchi.",
+    "invalid_day": "Guyyaan kaffaltii lakkoofsa guutuu 1 hanga 31 jidduu ta'uu qaba."
   },
   "goals": {
     "title": "Kaayyoota Oolmaa",

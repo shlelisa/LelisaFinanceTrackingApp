@@ -204,7 +204,7 @@ export default function TransactionsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 p-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-primary">{t("transaction.title")}</h1>
           <Button

@@ -10,6 +10,7 @@ import type { Bill, CreateBillInput, UpdateBillInput } from "../types/bill";
 import type { Debt, CreateDebtInput, UpdateDebtInput } from "../types/debt";
 import type { CustomCategory, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
 import type { IncomePeriod, CreateIncomePeriodInput } from "../types/incomePeriod";
+import type { SalaryConfig } from "../types/salary";
 import type { User, AuthResponse } from "../types/api";
 import { getPreferredCurrency } from "../currency";
 
@@ -18,6 +19,8 @@ const KEYS = {
   BUDGETS: "pft_offline_budgets",
   GOALS: "pft_offline_goals",
   RECURRING: "pft_offline_recurring",
+  SALARY: "pft_offline_salary",
+  SALARY_CREDITED: "pft_salary_credited",
   ACCOUNTS: "pft_offline_accounts",
   BILLS: "pft_offline_bills",
   DEBTS: "pft_offline_debts",
@@ -71,6 +74,7 @@ export type DataChangedEntity =
   | "budgets"
   | "goals"
   | "recurring"
+  | "salary"
   | "accounts"
   | "bills"
   | "debts"
@@ -1071,6 +1075,156 @@ export function deleteStoredRecurring(id: string): void {
   setItem(KEYS.RECURRING, recurring);
 }
 
+// --- MONTHLY SALARY STORAGE & AUTO-CREDIT ---
+// The user configures a monthly amount + payment day; the system automatically
+// records it as income on that day every month. Balance may go negative from
+// overspending; the next salary credit simply adds on top of the carried-over
+// balance (e.g. -2,000 + 10,000 = 8,000).
+
+export function getStoredSalary(): SalaryConfig | null {
+  const currentUser = getCurrentUserContext();
+  const all = getItem<SalaryConfig[]>(KEYS.SALARY, []);
+  return all.find((s) => s.userId === currentUser.id && s.isActive) ?? null;
+}
+
+export function saveStoredSalary(input: { amount: number; paymentDay: number }): SalaryConfig {
+  const all = getItem<SalaryConfig[]>(KEYS.SALARY, []);
+  const currentUser = getCurrentUserContext();
+  const nowISO = new Date().toISOString();
+
+  const idx = all.findIndex((s) => s.userId === currentUser.id);
+  // Keep prior createdAt so auto-credit does not try to backfill months before
+  // the salary was first configured.
+  const config: SalaryConfig = {
+    userId: currentUser.id,
+    amount: input.amount,
+    paymentDay: input.paymentDay,
+    currency: getPreferredCurrency(),
+    isActive: true,
+    createdAt: idx !== -1 ? all[idx].createdAt : nowISO,
+    updatedAt: nowISO,
+  };
+  if (idx !== -1) all[idx] = config;
+  else all.push(config);
+  setItem(KEYS.SALARY, all);
+  emitDataChanged("salary");
+  return config;
+}
+
+export function deleteStoredSalary(): void {
+  const all = getItem<SalaryConfig[]>(KEYS.SALARY, []);
+  const currentUser = getCurrentUserContext();
+  setItem(KEYS.SALARY, all.filter((s) => s.userId !== currentUser.id));
+  emitDataChanged("salary");
+}
+
+/** Actual calendar date salary is paid for a given month (day clamped to month length). */
+export function salaryPayDateForMonth(year: number, monthIndex0: number, paymentDay: number): Date {
+  const lastDay = new Date(year, monthIndex0 + 1, 0).getDate();
+  return new Date(year, monthIndex0, Math.min(Math.max(1, Math.round(paymentDay)), lastDay));
+}
+
+function monthKeyOf(year: number, monthIndex0: number): string {
+  return `${year}-${String(monthIndex0 + 1).padStart(2, "0")}`;
+}
+
+function getSalaryLedger(): Record<string, string[]> {
+  return getItem<Record<string, string[]>>(KEYS.SALARY_CREDITED, {});
+}
+
+function markMonthCredited(userId: string, monthKey: string): void {
+  const ledger = getSalaryLedger();
+  if (!ledger[userId]) ledger[userId] = [];
+  if (!ledger[userId].includes(monthKey)) ledger[userId].push(monthKey);
+  setItem(KEYS.SALARY_CREDITED, ledger);
+}
+
+/** Months (YYYY-MM) in which the current user's salary has already been credited. */
+export function getSalaryCreditedMonths(): string[] {
+  return getSalaryLedger()[getCurrentUserContext().id] ?? [];
+}
+
+/**
+ * Automatically credits the monthly salary as an income transaction whenever a
+ * pay date has passed without being credited yet. Idempotent via a per-user
+ * credited-months ledger, so deleting the transaction will not re-add it and
+ * repeated calls never double-credit. Handles multi-month gaps (e.g. app not
+ * opened for two months credits both missed salaries).
+ */
+export function ensureSalaryIncome(): Transaction[] {
+  const config = getStoredSalary();
+  if (!config || !config.isActive || !(config.amount > 0)) return [];
+
+  const userId = config.userId;
+  const credited = new Set(getSalaryLedger()[userId] ?? []);
+  const created: Transaction[] = [];
+  const start = new Date(config.createdAt);
+  const now = new Date();
+
+  let year = start.getFullYear();
+  let month = start.getMonth();
+  while (new Date(year, month, 1) <= new Date(now.getFullYear(), now.getMonth(), 1)) {
+    const key = monthKeyOf(year, month);
+    const payDate = salaryPayDateForMonth(year, month, config.paymentDay);
+
+    if (!credited.has(key) && now.getTime() >= payDate.getTime()) {
+      // Mark first so a failure mid-way cannot cause duplicate credits on retry.
+      markMonthCredited(userId, key);
+      try {
+        const tx = saveStoredTransaction({
+          type: "income",
+          amount: config.amount,
+          category: "Salary",
+          description: `Monthly Salary – ${payDate.toLocaleString("en-US", { month: "long" })} ${year}`,
+          date: `${key}-${String(payDate.getDate()).padStart(2, "0")}`,
+          tags: ["auto", "salary"],
+        });
+        created.push(tx);
+      } catch (e) {
+        console.error("Failed to auto-credit monthly salary", e);
+      }
+    }
+
+    month += 1;
+    if (month > 11) {
+      month = 0;
+      year += 1;
+    }
+  }
+  return created;
+}
+
+/**
+ * Expected total recurring monthly income used as the ceiling for monthly
+ * budgets: configured salary plus active monthly recurring income sources.
+ */
+export function getExpectedMonthlyIncome(): { total: number; salary: number; recurringIncome: number } {
+  const config = getStoredSalary();
+  const salary = config?.isActive && config.amount > 0 ? config.amount : 0;
+  const recurringIncome = getStoredRecurring()
+    .filter((r) => r.isActive && r.type === "income" && r.frequency === "monthly")
+    .reduce((sum, r) => sum + r.amount, 0);
+  return { total: salary + recurringIncome, salary, recurringIncome };
+}
+
+/** Average actual income over the previous N full months (excludes current partial month). */
+export function getAverageMonthlyIncome(monthsBack = 3): number {
+  const incomes = getStoredTransactions().filter((t) => t.type === "income");
+  if (incomes.length === 0) return 0;
+  const now = new Date();
+  let total = 0;
+  for (let i = 1; i <= monthsBack; i++) {
+    const ref = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    total += incomes
+      .filter((t) => {
+        const d = new Date(t.date);
+        return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+  }
+  return total / monthsBack;
+}
+
 // --- USER & AUTH STORAGE WITH ROLE-BASED LOGIN & REGISTER ---
 export function getStoredUser(): User {
   initializeSeedData();
@@ -1545,6 +1699,7 @@ export function exportFullBackupJSON(): string {
     budgets: getItem(KEYS.BUDGETS, []),
     goals: getItem(KEYS.GOALS, []),
     recurring: getItem(KEYS.RECURRING, []),
+    salary: getItem(KEYS.SALARY, []),
     accounts: getItem(KEYS.ACCOUNTS, []),
     bills: getItem(KEYS.BILLS, []),
     debts: getItem(KEYS.DEBTS, []),
@@ -1584,6 +1739,9 @@ export function importFullBackupJSON(jsonString: string): boolean {
     }
     if (Array.isArray(data.recurring)) {
       setItem(KEYS.RECURRING, remapUserId(data.recurring, currentId));
+    }
+    if (Array.isArray(data.salary)) {
+      setItem(KEYS.SALARY, remapUserId(data.salary, currentId));
     }
     if (Array.isArray(data.accounts)) {
       setItem(KEYS.ACCOUNTS, remapUserId(data.accounts, currentId));

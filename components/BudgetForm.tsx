@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -27,7 +28,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { budgetFormSchema, BudgetFormValues } from "@/lib/validation/budget";
 import { BUDGET_PERIODS } from "@/lib/types/budget";
-import { getAllKnownCategoryNames } from "@/lib/storage/localStorage";
+import {
+  getAllKnownCategoryNames,
+  getExpectedMonthlyIncome,
+  getAverageMonthlyIncome,
+  getStoredBudgets,
+} from "@/lib/storage/localStorage";
+import { formatCurrency } from "@/lib/currency";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface BudgetFormProps {
@@ -58,8 +65,37 @@ const BudgetForm = ({
       !existingCategories.includes(cat) || cat === defaultValues?.category,
   );
 
+  // Monthly budget ceiling: configured salary + active monthly recurring income.
+  // Falls back to the average actual income of the last 3 full months when no
+  // recurring income sources are configured. 0 means "cannot validate".
+  const { monthlyIncomeCap, allocatedMonthly, remainingAllowance } = useMemo(() => {
+    const expected = getExpectedMonthlyIncome();
+    const cap = expected.total > 0 ? expected.total : getAverageMonthlyIncome();
+    const allocated = getStoredBudgets()
+      .filter((b) => (b.period || "monthly") === "monthly")
+      .filter((b) => !(mode === "edit" && b.category === defaultValues?.category))
+      .reduce((sum, b) => sum + b.limitAmount, 0);
+    return {
+      monthlyIncomeCap: cap,
+      allocatedMonthly: allocated,
+      remainingAllowance: Math.max(cap - allocated, 0),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, defaultValues?.category]);
+
   const handleFormSubmit = form.handleSubmit(async (data) => {
     try {
+      const period = data.period || "monthly";
+      if (
+        period === "monthly" &&
+        monthlyIncomeCap > 0 &&
+        data.limitAmount > monthlyIncomeCap - allocatedMonthly
+      ) {
+        // Plain key only — FormMessage resolves it through t(); the actual
+        // remaining allowance is shown live in the hint below the field.
+        form.setError("limitAmount", { message: "budgets.exceeds_income" });
+        return;
+      }
       await onSubmit(data);
       form.reset();
       onOpenChange(false);
@@ -140,6 +176,14 @@ const BudgetForm = ({
                     <Input type="number" placeholder={t("budgets.amount_placeholder")} {...field} />
                   </FormControl>
                   <FormMessage>{fieldState.error ? t(String(fieldState.error.message)) : undefined}</FormMessage>
+                  {monthlyIncomeCap > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("budgets.max_budget_hint", {
+                        income: formatCurrency(monthlyIncomeCap),
+                        max: formatCurrency(remainingAllowance),
+                      })}
+                    </p>
+                  )}
                 </FormItem>
               )}
             />

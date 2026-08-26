@@ -14,6 +14,7 @@ const REACTIVE_QUERY_KEYS = [
   ["budgets"],
   ["goals"],
   ["recurring"],
+  ["salary"],
   ["accounts"],
   ["bills"],
   ["debts"],

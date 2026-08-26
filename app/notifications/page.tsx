@@ -36,7 +36,7 @@ export default function NotificationsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
+      <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="size-6 text-primary" />

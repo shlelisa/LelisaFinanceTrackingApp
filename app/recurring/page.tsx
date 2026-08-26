@@ -58,7 +58,7 @@ export default function RecurringPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 p-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <RefreshCw className="size-6 text-primary" />
